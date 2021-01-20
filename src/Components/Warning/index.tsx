@@ -4,12 +4,20 @@ const Warning: React.FC<any> = () => {
 	return (
 		<div
 			style={{
-				backgroundColor: "white",
-				padding: "16px",
-				color: "black",
+				width: "50%",
+				backgroundColor: "#F42C2C",
+				position: "absolute",
+				bottom: 0,
+				left: 0,
+				borderRadius: 4,
+				transform: "translateX(50%)",
+				padding: "8px 16px",
+				color: "white",
+				zIndex: 10,
+				marginBottom: 16,
 			}}
 		>
-			<p>You are entering a region with traffic</p>
+			You are entering a region with traffic
 		</div>
 	);
 };
