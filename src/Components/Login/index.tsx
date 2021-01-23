@@ -7,12 +7,7 @@ const Login: React.FC<any> = () => {
 	const windowLocation = useHistory();
 	const [loading, setLoading] = useState(true);
 
-	const {
-		location: currentLocation,
-		email,
-		setEmail,
-		setLocation,
-	} = useContext(CurrentLocationContext);
+	const { setEmail, setLocation } = useContext(CurrentLocationContext);
 
 	useEffect(() => {
 		axios

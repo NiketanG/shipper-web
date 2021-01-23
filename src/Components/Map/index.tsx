@@ -39,17 +39,14 @@ const Map: React.FC<any> = () => {
 
 	const [selectedShip, setSelectedShip] = useState<OtherShips | null>(null);
 
-	const [ships, setShips] = useState<OtherShips[] | null>([]);
-
+	const [ships, setShips] = useState<OtherShips[]>([]);
+	const shipsRef = React.useRef(ships);
 	const selectShip = (ship: OtherShips) => {
 		setSelectedShip(ship);
 	};
-	const {
-		location: currentLocation,
-		email,
-		setEmail,
-		setLocation,
-	} = useContext(CurrentLocationContext);
+	const { location: currentLocation, setEmail, setLocation } = useContext(
+		CurrentLocationContext
+	);
 
 	const windowLocation = useHistory();
 
@@ -98,45 +95,62 @@ const Map: React.FC<any> = () => {
 
 	const { dataSource } = useContext(DataSourceContext);
 
-	useEffect(() => {
-		socket.on("AIS_SIGNAL_RECEIVED", (data: SocketShipData) => {
-			console.log("AIS_SIGNAL_RECEIVED", data.email);
-			if (data.email && ships) {
-				const allShips = [...ships];
-				console.log(ships);
-				const shipIndex = allShips.findIndex(
-					(e) => e.email === data.email
-				);
-				if (shipIndex !== -1) {
-					console.log("exists");
-					allShips[shipIndex].latitude = data.location.latitude;
-					allShips[shipIndex].longitude = data.location.longitude;
-					allShips[shipIndex].heading = data.location.heading;
-					allShips[shipIndex].speed = data.location.speed;
-					setShips(allShips);
-				} else {
-					console.log("Doesnt exist");
-					setShips([
-						...allShips,
-						{
-							email: data.email,
-							heading: data.location.heading,
-							speed: data.location.speed,
-							latitude: data.location.latitude,
-							longitude: data.location.longitude,
-							name: data.name,
-						},
-					]);
-				}
+	const onAisSignal = (data: SocketShipData) => {
+		console.log("AIS_SIGNAL_RECEIVED", data.email);
+		console.log(shipsRef.current);
+		if (data.email) {
+			const allShips = [...shipsRef.current];
+			const shipIndex = allShips.findIndex((e) => e.email === data.email);
+			console.log(allShips);
+			if (shipIndex !== -1) {
+				console.log("exists");
+				allShips[shipIndex] = {
+					...allShips[shipIndex],
+					latitude: data.location.latitude,
+					longitude: data.location.longitude,
+					heading: data.location.heading,
+					speed: data.location.heading,
+				};
+				setShips(allShips);
+			} else {
+				console.log("Doesnt exist");
+				addShip({
+					email: data.email,
+					heading: data.location.heading,
+					speed: data.location.speed,
+					latitude: data.location.latitude,
+					longitude: data.location.longitude,
+					name: data.name,
+				});
 			}
-		});
-	}, [ships]);
+		}
+	};
+
+	const addShip = (ship: OtherShips) => {
+		setShips((prevShips) => [...prevShips, ship]);
+	};
+
+	useEffect(() => {
+		const handler = (data: SocketShipData) => {
+			onAisSignal(data);
+		};
+
+		socket.on("AIS_SIGNAL_RECEIVED", handler);
+
+		return () => {
+			socket.off("AIS_SIGNAL_RECEIVED", handler);
+		};
+	}, []);
+
+	useEffect(() => {
+		shipsRef.current = ships;
+	});
 
 	return (
 		<div>
 			<NavigationControls />
 			<SwitchLayers />
-			<Warning />
+			{/* <Warning /> */}
 			<ReactMapGl
 				{...viewport}
 				mapStyle={
