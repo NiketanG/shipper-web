@@ -1,8 +1,9 @@
 import React, { useContext } from "react";
 import { CurrentLocationContext } from "../../utils/currentLocationContext";
+import socket from "../../utils/socket";
 
 const NavigationControls: React.FC<any> = () => {
-	const { location, setLocation } = useContext(CurrentLocationContext);
+	const { location, email, setLocation } = useContext(CurrentLocationContext);
 
 	const goForward = () => {
 		if (location) {
@@ -10,6 +11,10 @@ const NavigationControls: React.FC<any> = () => {
 				...location,
 				latitude: location.latitude + 0.0005,
 			};
+			socket.emit("AIS_SIGNAL_EMIT", {
+				email,
+				location: newLocation,
+			});
 			setLocation({
 				...newLocation,
 			});
@@ -22,6 +27,10 @@ const NavigationControls: React.FC<any> = () => {
 				...location,
 				latitude: location.latitude - 0.0005,
 			};
+			socket.emit("AIS_SIGNAL_EMIT", {
+				email,
+				location: newLocation,
+			});
 			setLocation({
 				...newLocation,
 			});
@@ -34,6 +43,10 @@ const NavigationControls: React.FC<any> = () => {
 				...location,
 				longitude: location.longitude - 0.0005,
 			};
+			socket.emit("AIS_SIGNAL_EMIT", {
+				email,
+				location: newLocation,
+			});
 			setLocation({
 				...newLocation,
 			});
@@ -46,6 +59,10 @@ const NavigationControls: React.FC<any> = () => {
 				...location,
 				longitude: location.longitude + 0.0005,
 			};
+			socket.emit("AIS_SIGNAL_EMIT", {
+				email,
+				location: newLocation,
+			});
 			setLocation({
 				...newLocation,
 			});
@@ -59,11 +76,19 @@ const NavigationControls: React.FC<any> = () => {
 			};
 			if (location.heading - 10 <= 0) {
 				newLocation.heading = 360;
+				socket.emit("AIS_SIGNAL_EMIT", {
+					email,
+					location: newLocation,
+				});
 				setLocation({
 					...newLocation,
 				});
 			} else {
 				newLocation.heading = location.heading - 10;
+				socket.emit("AIS_SIGNAL_EMIT", {
+					email,
+					location: newLocation,
+				});
 				setLocation({
 					...newLocation,
 				});
@@ -78,12 +103,20 @@ const NavigationControls: React.FC<any> = () => {
 			};
 			if (location.heading + 10 >= 360) {
 				newLocation.heading = 0;
+				socket.emit("AIS_SIGNAL_EMIT", {
+					email,
+					location: newLocation,
+				});
 				setLocation({
 					...newLocation,
 					heading: 0,
 				});
 			} else {
 				newLocation.heading = location.heading + 10;
+				socket.emit("AIS_SIGNAL_EMIT", {
+					email,
+					location: newLocation,
+				});
 				setLocation({
 					...newLocation,
 				});

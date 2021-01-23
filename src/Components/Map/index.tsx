@@ -1,7 +1,10 @@
-import React, { useState, useContext } from "react";
+import axios from "axios";
+import React, { useState, useContext, useEffect } from "react";
 import ReactMapGl, { Marker, Popup } from "react-map-gl";
+import { useHistory } from "react-router-dom";
 import { CurrentLocationContext } from "../../utils/currentLocationContext";
 import { DataSourceContext } from "../../utils/DataSourceContext";
+import socket from "../../utils/socket";
 
 import NavigationControls from "../NavigationControls";
 import SwitchLayers from "../SwitchLayers";
@@ -11,7 +14,21 @@ type OtherShips = {
 	latitude: number;
 	longitude: number;
 	heading: number;
+	speed: number;
 	email: string;
+	name: string;
+};
+
+type SocketShipData = {
+	email: string;
+	name: string;
+	location: {
+		latitude: number;
+		longitude: number;
+		heading: number;
+		speed: number;
+	};
+	lastUpdated: string;
 };
 const Map: React.FC<any> = () => {
 	const [viewport, setViewport] = useState({
@@ -22,29 +39,98 @@ const Map: React.FC<any> = () => {
 
 	const [selectedShip, setSelectedShip] = useState<OtherShips | null>(null);
 
+	const [ships, setShips] = useState<OtherShips[] | null>([]);
+
 	const selectShip = (ship: OtherShips) => {
 		setSelectedShip(ship);
 	};
+	const {
+		location: currentLocation,
+		email,
+		setEmail,
+		setLocation,
+	} = useContext(CurrentLocationContext);
 
-	const _otherShips: OtherShips[] = [
-		{
-			email: "test",
-			heading: 16,
-			latitude: 17.00919245936354,
-			longitude: 73.26283158874858,
-		},
+	const windowLocation = useHistory();
 
-		{
-			email: "test2",
-			heading: 60,
-			latitude: 17.00619945936354,
-			longitude: 73.26783958874858,
-		},
-	];
+	useEffect(() => {
+		axios
+			.get("http://localhost:4000/ships", {
+				withCredentials: true,
+			})
+			.then((res) => {
+				if (res.status === 200) {
+					setShips(res.data);
+				}
+			})
+			.catch((err) => {
+				alert("An error occured");
+				console.error(err);
+			});
+	}, []);
 
-	const { location: currentLocation } = useContext(CurrentLocationContext);
+	useEffect(() => {
+		axios
+			.get("http://localhost:4000/api/users/current", {
+				withCredentials: true,
+			})
+			.then((res) => {
+				if (res.status === 200 && res.data && res.data.email) {
+					setEmail(res.data.email);
+					setViewport({
+						...viewport,
+						latitude: res.data.latitude,
+						longitude: res.data.longitude,
+					});
+					setLocation({
+						heading: res.data.heading,
+						latitude: res.data.latitude,
+						longitude: res.data.longitude,
+						speed: res.data.speed,
+					});
+				}
+			})
+			.catch((err) => {
+				console.log(err);
+				windowLocation.replace("/");
+			});
+	}, []);
 
 	const { dataSource } = useContext(DataSourceContext);
+
+	useEffect(() => {
+		socket.on("AIS_SIGNAL_RECEIVED", (data: SocketShipData) => {
+			console.log("AIS_SIGNAL_RECEIVED", data.email);
+			if (data.email && ships) {
+				const allShips = [...ships];
+				console.log(ships);
+				const shipIndex = allShips.findIndex(
+					(e) => e.email === data.email
+				);
+				if (shipIndex !== -1) {
+					console.log("exists");
+					allShips[shipIndex].latitude = data.location.latitude;
+					allShips[shipIndex].longitude = data.location.longitude;
+					allShips[shipIndex].heading = data.location.heading;
+					allShips[shipIndex].speed = data.location.speed;
+					setShips(allShips);
+				} else {
+					console.log("Doesnt exist");
+					setShips([
+						...allShips,
+						{
+							email: data.email,
+							heading: data.location.heading,
+							speed: data.location.speed,
+							latitude: data.location.latitude,
+							longitude: data.location.longitude,
+							name: data.name,
+						},
+					]);
+				}
+			}
+		});
+	}, [ships]);
 
 	return (
 		<div>
@@ -64,7 +150,7 @@ const Map: React.FC<any> = () => {
 					setViewport(viewport);
 				}}
 			>
-				{_otherShips.map((ship) => (
+				{ships?.map((ship) => (
 					<Marker
 						key={ship.email}
 						latitude={ship.latitude}
