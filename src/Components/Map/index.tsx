@@ -52,7 +52,7 @@ const Map: React.FC<any> = () => {
 
 	useEffect(() => {
 		axios
-			.get("http://localhost:4000/ships", {
+			.get(`${process.env.REACT_APP_API_URL}/ships`, {
 				withCredentials: true,
 			})
 			.then((res) => {
@@ -68,7 +68,7 @@ const Map: React.FC<any> = () => {
 
 	useEffect(() => {
 		axios
-			.get("http://localhost:4000/api/users/current", {
+			.get(`${process.env.REACT_APP_API_URL}/api/users/current`, {
 				withCredentials: true,
 			})
 			.then((res) => {
@@ -97,11 +97,9 @@ const Map: React.FC<any> = () => {
 
 	const onAisSignal = (data: SocketShipData) => {
 		console.log("AIS_SIGNAL_RECEIVED", data.email);
-		console.log(shipsRef.current);
 		if (data.email) {
 			const allShips = [...shipsRef.current];
 			const shipIndex = allShips.findIndex((e) => e.email === data.email);
-			console.log(allShips);
 			if (shipIndex !== -1) {
 				console.log("exists");
 				allShips[shipIndex] = {

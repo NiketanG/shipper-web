@@ -11,7 +11,7 @@ const Login: React.FC<any> = () => {
 
 	useEffect(() => {
 		axios
-			.get("http://localhost:4000/api/users/current", {
+			.get(`${process.env.REACT_APP_API_URL}/api/users/current`, {
 				withCredentials: true,
 			})
 			.then((res) => {
@@ -63,7 +63,7 @@ const Login: React.FC<any> = () => {
 			}}
 		>
 			<h3>Login</h3>
-			<a href="http://localhost:4000/login/google">
+			<a href={`${process.env.REACT_APP_API_URL}/login/google`}>
 				Continue with Google
 			</a>
 		</div>
