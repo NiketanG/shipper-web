@@ -49,11 +49,14 @@ const Map: React.FC<any> = () => {
 	);
 
 	const windowLocation = useHistory();
-
+	const savedEmail = localStorage.getItem("email");
 	useEffect(() => {
 		axios
 			.get(`${process.env.REACT_APP_API_URL}/ships`, {
 				withCredentials: true,
+				headers: {
+					Authorization: savedEmail,
+				},
 			})
 			.then((res) => {
 				if (res.status === 200) {
@@ -67,30 +70,39 @@ const Map: React.FC<any> = () => {
 	}, []);
 
 	useEffect(() => {
-		axios
-			.get(`${process.env.REACT_APP_API_URL}/api/users/current`, {
-				withCredentials: true,
-			})
-			.then((res) => {
-				if (res.status === 200 && res.data && res.data.email) {
-					setEmail(res.data.email);
-					setViewport({
-						...viewport,
-						latitude: res.data.latitude,
-						longitude: res.data.longitude,
-					});
-					setLocation({
-						heading: res.data.heading,
-						latitude: res.data.latitude,
-						longitude: res.data.longitude,
-						speed: res.data.speed,
-					});
-				}
-			})
-			.catch((err) => {
-				console.log(err);
-				windowLocation.replace("/");
-			});
+		if (savedEmail && typeof savedEmail === "string") {
+			axios
+				.get(`${process.env.REACT_APP_API_URL}/api/users/current`, {
+					withCredentials: true,
+					headers: {
+						Authorization: savedEmail,
+					},
+				})
+				.then((res) => {
+					if (res.status === 200 && res.data && res.data.email) {
+						setEmail(res.data.email);
+						setViewport({
+							...viewport,
+							latitude: res.data.latitude,
+							longitude: res.data.longitude,
+						});
+						setLocation({
+							heading: res.data.heading,
+							latitude: res.data.latitude,
+							longitude: res.data.longitude,
+							speed: res.data.speed,
+						});
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+					localStorage.removeItem("email");
+					localStorage.removeItem("name");
+					windowLocation.replace("/");
+				});
+		} else {
+			windowLocation.replace("/");
+		}
 	}, []);
 
 	const { dataSource } = useContext(DataSourceContext);

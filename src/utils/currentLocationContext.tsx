@@ -42,7 +42,9 @@ const LocationContextProvider: React.FC<Props> = ({ children }) => {
 		});
 	};
 
-	const updateEmail = (newEmail: string) => setEmail(newEmail);
+	const updateEmail = (newEmail: string) => {
+		setEmail(newEmail);
+	};
 
 	return (
 		<CurrentLocationContext.Provider

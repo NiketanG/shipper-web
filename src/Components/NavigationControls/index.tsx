@@ -4,6 +4,7 @@ import socket from "../../utils/socket";
 
 const NavigationControls: React.FC<any> = () => {
 	const { location, email, setLocation } = useContext(CurrentLocationContext);
+	const savedName = localStorage.getItem("name");
 
 	const goForward = () => {
 		if (location) {
@@ -13,6 +14,7 @@ const NavigationControls: React.FC<any> = () => {
 			};
 			socket.emit("AIS_SIGNAL_EMIT", {
 				email,
+				name: savedName || "",
 				location: newLocation,
 			});
 			setLocation({
@@ -29,6 +31,7 @@ const NavigationControls: React.FC<any> = () => {
 			};
 			socket.emit("AIS_SIGNAL_EMIT", {
 				email,
+				name: savedName || "",
 				location: newLocation,
 			});
 			setLocation({
@@ -45,6 +48,7 @@ const NavigationControls: React.FC<any> = () => {
 			};
 			socket.emit("AIS_SIGNAL_EMIT", {
 				email,
+				name: savedName || "",
 				location: newLocation,
 			});
 			setLocation({
@@ -61,6 +65,7 @@ const NavigationControls: React.FC<any> = () => {
 			};
 			socket.emit("AIS_SIGNAL_EMIT", {
 				email,
+				name: savedName || "",
 				location: newLocation,
 			});
 			setLocation({
@@ -78,6 +83,7 @@ const NavigationControls: React.FC<any> = () => {
 				newLocation.heading = 360;
 				socket.emit("AIS_SIGNAL_EMIT", {
 					email,
+					name: savedName || "",
 					location: newLocation,
 				});
 				setLocation({
@@ -87,6 +93,7 @@ const NavigationControls: React.FC<any> = () => {
 				newLocation.heading = location.heading - 10;
 				socket.emit("AIS_SIGNAL_EMIT", {
 					email,
+					name: savedName || "",
 					location: newLocation,
 				});
 				setLocation({
@@ -105,6 +112,7 @@ const NavigationControls: React.FC<any> = () => {
 				newLocation.heading = 0;
 				socket.emit("AIS_SIGNAL_EMIT", {
 					email,
+					name: savedName || "",
 					location: newLocation,
 				});
 				setLocation({
@@ -115,6 +123,7 @@ const NavigationControls: React.FC<any> = () => {
 				newLocation.heading = location.heading + 10;
 				socket.emit("AIS_SIGNAL_EMIT", {
 					email,
+					name: savedName || "",
 					location: newLocation,
 				});
 				setLocation({
