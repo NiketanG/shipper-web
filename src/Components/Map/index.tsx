@@ -1,6 +1,11 @@
 import axios from "axios";
 import React, { useState, useContext, useEffect } from "react";
 import ReactMapGl, { Marker, Popup } from "react-map-gl";
+import mapboxgl from "mapbox-gl";
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+(mapboxgl as any).workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
+
 import { useHistory } from "react-router-dom";
 import { CurrentLocationContext } from "../../utils/currentLocationContext";
 import { DataSourceContext } from "../../utils/DataSourceContext";

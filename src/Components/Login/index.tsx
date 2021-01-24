@@ -46,6 +46,7 @@ const Login: React.FC<any> = () => {
 	useEffect(() => {
 		const savedEmail = localStorage.getItem("email");
 		const savedName = localStorage.getItem("name");
+
 		if (
 			typeof savedEmail === "string" &&
 			typeof savedName === "string" &&
