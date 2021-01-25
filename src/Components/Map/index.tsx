@@ -14,27 +14,9 @@ import socket from "../../utils/socket";
 import NavigationControls from "../NavigationControls";
 import SwitchLayers from "../SwitchLayers";
 import Warning from "../Warning";
+import { OtherShips, SocketShipData } from "../../types/types";
+import getNearbyShips from "../../utils/getNearbyShips";
 
-type OtherShips = {
-	latitude: number;
-	longitude: number;
-	heading: number;
-	speed: number;
-	email: string;
-	name: string;
-};
-
-type SocketShipData = {
-	email: string;
-	name: string;
-	location: {
-		latitude: number;
-		longitude: number;
-		heading: number;
-		speed: number;
-	};
-	lastUpdated: string;
-};
 const Map: React.FC<any> = () => {
 	const [viewport, setViewport] = useState({
 		latitude: 17.00919245936354,
@@ -44,11 +26,14 @@ const Map: React.FC<any> = () => {
 
 	const [selectedShip, setSelectedShip] = useState<OtherShips | null>(null);
 
+	const [nearbyShips, setNearbyShips] = useState<OtherShips[] | null>(null);
+
 	const [ships, setShips] = useState<OtherShips[]>([]);
 	const shipsRef = React.useRef(ships);
 	const selectShip = (ship: OtherShips) => {
 		setSelectedShip(ship);
 	};
+
 	const { location: currentLocation, setEmail, setLocation } = useContext(
 		CurrentLocationContext
 	);
@@ -112,13 +97,18 @@ const Map: React.FC<any> = () => {
 
 	const { dataSource } = useContext(DataSourceContext);
 
+	useEffect(() => {
+		if (currentLocation) {
+			setNearbyShips(getNearbyShips(ships, currentLocation));
+		}
+	}, [ships, currentLocation]);
+
 	const onAisSignal = (data: SocketShipData) => {
 		console.log("AIS_SIGNAL_RECEIVED", data.email);
 		if (data.email) {
 			const allShips = [...shipsRef.current];
 			const shipIndex = allShips.findIndex((e) => e.email === data.email);
 			if (shipIndex !== -1) {
-				console.log("exists");
 				allShips[shipIndex] = {
 					...allShips[shipIndex],
 					latitude: data.location.latitude,
@@ -128,7 +118,6 @@ const Map: React.FC<any> = () => {
 				};
 				setShips(allShips);
 			} else {
-				console.log("Doesnt exist");
 				addShip({
 					email: data.email,
 					heading: data.location.heading,
@@ -165,7 +154,21 @@ const Map: React.FC<any> = () => {
 		<div>
 			<NavigationControls />
 			<SwitchLayers />
-			{/* <Warning /> */}
+			{nearbyShips && nearbyShips.length === 1 && (
+				<Warning
+					severity="MEDIUM"
+					text={`There is another ship nearby within ${
+						process.env.REACT_APP_NEARBY_RADIUS || 5
+					} kms. `}
+				/>
+			)}
+			{nearbyShips && nearbyShips.length > 1 && (
+				<Warning
+					severity="HIGH"
+					text={"You are entering a region with traffic"}
+				/>
+			)}
+
 			<ReactMapGl
 				{...viewport}
 				mapStyle={

@@ -1,11 +1,21 @@
 import React from "react";
 
-const Warning: React.FC<any> = () => {
+type Props = {
+	severity: "LOW" | "MEDIUM" | "HIGH";
+	text: string;
+};
+
+const Warning: React.FC<Props> = ({ severity = "MEDIUM", text }) => {
 	return (
 		<div
 			style={{
 				width: "50%",
-				backgroundColor: "#F42C2C",
+				backgroundColor:
+					severity === "HIGH"
+						? "#F42C2C"
+						: severity === "MEDIUM"
+						? "#EF6C00"
+						: "#FFA000",
 				position: "absolute",
 				bottom: 0,
 				left: 0,
@@ -17,7 +27,7 @@ const Warning: React.FC<any> = () => {
 				marginBottom: 16,
 			}}
 		>
-			You are entering a region with traffic
+			{text}
 		</div>
 	);
 };
