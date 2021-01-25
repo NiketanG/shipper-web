@@ -6,7 +6,7 @@ Developed for **ASEAN-India Hackathon** 2021 - PS7.
 
 ##### Demo:  [Shipper-Web](https://shipper-web.netlify.app)
 
-##### For Backend - Refer to [Shipper-Server](https://github.com/NiketanG/shipper-sever)
+##### For Backend - Refer to [Shipper-Server](https://github.com/NiketanG/shipper-server)
 
 ### Local Development
 
