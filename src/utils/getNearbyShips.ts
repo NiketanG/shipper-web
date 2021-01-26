@@ -1,5 +1,5 @@
-import { SIGHUP } from "constants";
 import { Location, OtherShips } from "../types/types";
+import { Position } from "geojson";
 
 const degreeToRadians = (degrees: number) => {
 	return degrees * (Math.PI / 180);
@@ -7,6 +7,41 @@ const degreeToRadians = (degrees: number) => {
 
 const radiansToDegree = (radians: number) => {
 	return (radians * 180) / Math.PI;
+};
+
+export const getHeadingSector = (
+	currentLocation: Location
+): Array<Position[]> => {
+	const angleRange = parseInt(process.env.REACT_APP_NEARBY_ANGLE || "35");
+
+	const N = 15;
+	const points: Array<Position[]> = [];
+
+	let A = currentLocation.heading - angleRange * 0.5;
+	const dA = angleRange / (N - 1);
+
+	const R = 6371;
+	const x =
+		R *
+		Math.cos(currentLocation.latitude) *
+		Math.cos(currentLocation.longitude);
+	const y =
+		R *
+		Math.cos(currentLocation.latitude) *
+		Math.sin(currentLocation.longitude);
+
+	const d = parseInt(process.env.REACT_APP_NEARBY_RADIUS || "5");
+
+	for (let i = 0; i < N; i++, A += dA) {
+		const c = Math.cos((A * Math.PI) / 180);
+		const s = Math.sin((A * Math.PI) / 180);
+		points[i] = [
+			((x + d * c) as unknown) as Position,
+			((y + d * s) as unknown) as Position,
+		];
+	}
+
+	return points;
 };
 const getDistance = (shipLocation: Location, currentLocation: Location) => {
 	const radius = 6371; // Radius of earth in Kilometers
@@ -52,14 +87,6 @@ const getNearbyShips = (
 	allShips: OtherShips[],
 	currentLocation: Location
 ): Array<OtherShips & { inFOV: boolean }> => {
-	// allShips.map((ship) => {
-	// 	console.log(
-	// 		`[Angle] ${ship.email} ${getAngle(
-	// 			currentLocation,
-	// 			ship
-	// 		)}, [Heading] ${currentLocation.heading}`
-	// 	);
-	// });
 	return allShips
 		.filter(
 			(ship) =>

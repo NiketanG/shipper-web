@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState, useContext, useEffect } from "react";
-import ReactMapGl, { Marker, Popup } from "react-map-gl";
+import ReactMapGl, { Marker, Popup, Source, Layer } from "react-map-gl";
 import mapboxgl from "mapbox-gl";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -15,7 +15,55 @@ import NavigationControls from "../NavigationControls";
 import SwitchLayers from "../SwitchLayers";
 import Warning from "../Warning";
 import { OtherShips, SocketShipData } from "../../types/types";
-import getNearbyShips from "../../utils/getNearbyShips";
+import getNearbyShips, { getHeadingSector } from "../../utils/getNearbyShips";
+
+type WarningsProps = {
+	nearbyShips: Array<OtherShips & { inFOV: boolean }>;
+};
+const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
+	if (nearbyShips.filter((ship) => ship.inFOV).length === 1) {
+		return (
+			<Warning
+				severity="HIGH"
+				text={`You are heading towards another ship within ${
+					process.env.REACT_APP_NEARBY_RADIUS || 5
+				} kms.`}
+			/>
+		);
+	}
+
+	if (nearbyShips.length === 1) {
+		return (
+			<Warning
+				severity="LOW"
+				text={`There is another ship nearby within ${
+					process.env.REACT_APP_NEARBY_RADIUS || 5
+				} kms. `}
+			/>
+		);
+	}
+
+	if (nearbyShips.filter((ship) => ship.inFOV).length >= 2) {
+		return (
+			<Warning
+				severity="HIGH"
+				text={`You are entering a region with traffic`}
+			/>
+		);
+	}
+
+	if (nearbyShips.length > 1) {
+		return (
+			<Warning
+				severity="MEDIUM"
+				text={`There are multiple ships nearby within ${
+					process.env.REACT_APP_NEARBY_RADIUS || 5
+				}kms.`}
+			/>
+		);
+	}
+	return null;
+};
 
 const Map: React.FC<any> = () => {
 	const [viewport, setViewport] = useState({
@@ -26,7 +74,9 @@ const Map: React.FC<any> = () => {
 
 	const [selectedShip, setSelectedShip] = useState<OtherShips | null>(null);
 
-	const [nearbyShips, setNearbyShips] = useState<OtherShips[] | null>(null);
+	const [nearbyShips, setNearbyShips] = useState<Array<
+		OtherShips & { inFOV: boolean }
+	> | null>(null);
 
 	const [ships, setShips] = useState<OtherShips[]>([]);
 	const shipsRef = React.useRef(ships);
@@ -154,20 +204,8 @@ const Map: React.FC<any> = () => {
 		<div>
 			<NavigationControls />
 			<SwitchLayers />
-			{nearbyShips && nearbyShips.length === 1 && (
-				<Warning
-					severity="MEDIUM"
-					text={`There is another ship nearby within ${
-						process.env.REACT_APP_NEARBY_RADIUS || 5
-					} kms. `}
-				/>
-			)}
-			{nearbyShips && nearbyShips.length > 1 && (
-				<Warning
-					severity="HIGH"
-					text={"You are entering a region with traffic"}
-				/>
-			)}
+
+			{nearbyShips && <Warnings nearbyShips={nearbyShips} />}
 
 			<ReactMapGl
 				{...viewport}
@@ -207,6 +245,88 @@ const Map: React.FC<any> = () => {
 						</button>
 					</Marker>
 				))}
+
+				{currentLocation && nearbyShips && nearbyShips.length > 0 && (
+					<>
+						<Source
+							id="radius"
+							type="geojson"
+							data={{
+								type: "FeatureCollection",
+								features: [
+									{
+										type: "Feature",
+										properties: {},
+										geometry: {
+											type: "Point",
+											coordinates: [
+												currentLocation.longitude,
+												currentLocation.latitude,
+											],
+										},
+									},
+								],
+							}}
+						>
+							<Layer
+								id="point"
+								type="circle"
+								paint={{
+									"circle-radius": {
+										stops: [
+											[0, 0],
+											[
+												20,
+												(parseInt(
+													process.env
+														.REACT_APP_NEARBY_RADIUS ||
+														"5"
+												) *
+													1000) /
+													0.075 /
+													Math.cos(
+														(currentLocation.latitude *
+															Math.PI) /
+															180
+													),
+											],
+										],
+										base: 2,
+									},
+									"circle-color": "#007cbf",
+									"circle-opacity": 0.4,
+									"circle-stroke-width": 1,
+								}}
+							/>
+						</Source>
+
+						{/* <Source
+							id="sectorSource"
+							type="geojson"
+							data={{
+								type: "Feature",
+								geometry: {
+									type: "Polygon",
+									coordinates: getHeadingSector(
+										currentLocation
+									),
+								},
+								properties: {},
+							}}
+						>
+							<Layer
+								id="sectorFill"
+								type="fill"
+								source="sectorSource"
+								paint={{
+									"fill-color": "red",
+									"fill-opacity": 0.4,
+								}}
+							/>
+						</Source> */}
+					</>
+				)}
+
 				{currentLocation?.latitude && currentLocation?.longitude && (
 					<Marker
 						key="currentLocation"
@@ -220,6 +340,8 @@ const Map: React.FC<any> = () => {
 								transform: `rotate(${
 									currentLocation.heading || 0
 								}deg)`,
+								marginLeft: "-18px",
+								marginTop: "-18px",
 							}}
 							src="../YourShip.png"
 							alt="Your Location"
