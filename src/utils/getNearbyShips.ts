@@ -85,14 +85,11 @@ const getAngle = (currentLocation: Location, shipLocation: Location) => {
 
 const getNearbyShips = (
 	allShips: OtherShips[],
-	currentLocation: Location
+	currentLocation: Location,
+	radius: number = parseInt(process.env.REACT_APP_NEARBY_RADIUS || "5")
 ): Array<OtherShips & { inFOV: boolean }> => {
 	return allShips
-		.filter(
-			(ship) =>
-				getDistance(ship, currentLocation) <
-				parseInt(process.env.REACT_APP_NEARBY_RADIUS || "5")
-		)
+		.filter((ship) => getDistance(ship, currentLocation) < radius)
 		.map((ship) => {
 			const angle = getAngle(currentLocation, ship);
 			const angleRange = parseInt(

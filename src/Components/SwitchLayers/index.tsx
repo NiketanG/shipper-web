@@ -1,8 +1,18 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { DataSourceContext } from "../../utils/DataSourceContext";
 
-const SwitchLayers: React.FC<any> = () => {
-	const { dataSource, setDataSource } = useContext(DataSourceContext);
+type Props = {
+	onEnableRadar: () => void;
+	onEnableAIS: () => void;
+	onEnableSatellite: () => void;
+};
+
+const SwitchLayers: React.FC<Props> = ({
+	onEnableAIS,
+	onEnableRadar,
+	onEnableSatellite,
+}) => {
+	const { dataSource } = useContext(DataSourceContext);
 
 	return (
 		<div
@@ -28,7 +38,7 @@ const SwitchLayers: React.FC<any> = () => {
 					borderRadius: "4px",
 				}}
 				alt="AIS"
-				onClick={() => setDataSource("AIS")}
+				onClick={onEnableAIS}
 			/>
 
 			<img
@@ -43,11 +53,11 @@ const SwitchLayers: React.FC<any> = () => {
 						dataSource === "SATELLITE" ? "black" : "white",
 				}}
 				alt="Satellite"
-				onClick={() => setDataSource("SATELLITE")}
+				onClick={onEnableSatellite}
 			/>
 			<img
 				src="/Radar.png"
-				onClick={() => setDataSource("RADAR")}
+				onClick={onEnableRadar}
 				style={{
 					width: "36px",
 					height: "36px",

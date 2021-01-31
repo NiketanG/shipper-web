@@ -1,6 +1,13 @@
 import axios from "axios";
 import React, { useState, useContext, useEffect } from "react";
-import ReactMapGl, { Marker, Popup, Source, Layer } from "react-map-gl";
+import ReactMapGl, {
+	ViewportProps,
+	Marker,
+	Popup,
+	Source,
+	Layer,
+	FlyToInterpolator,
+} from "react-map-gl";
 import mapboxgl from "mapbox-gl";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -66,7 +73,7 @@ const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
 };
 
 const Map: React.FC<any> = () => {
-	const [viewport, setViewport] = useState({
+	const [viewport, setViewport] = useState<any>({
 		latitude: 17.00919245936354,
 		longitude: 73.26783158874858,
 		zoom: 13,
@@ -80,6 +87,7 @@ const Map: React.FC<any> = () => {
 
 	const [ships, setShips] = useState<OtherShips[]>([]);
 	const shipsRef = React.useRef(ships);
+	const mapRef = React.useRef<ReactMapGl>(null);
 	const selectShip = (ship: OtherShips) => {
 		setSelectedShip(ship);
 	};
@@ -145,13 +153,31 @@ const Map: React.FC<any> = () => {
 		}
 	}, []);
 
-	const { dataSource } = useContext(DataSourceContext);
+	const { dataSource, setDataSource } = useContext(DataSourceContext);
 
 	useEffect(() => {
 		if (currentLocation) {
 			setNearbyShips(getNearbyShips(ships, currentLocation));
 		}
 	}, [ships, currentLocation]);
+
+	useEffect(() => {
+		if (currentLocation) {
+			const nearbyShipList = getNearbyShips(ships, currentLocation);
+			const shipsInRadar = getNearbyShips(ships, currentLocation, 2);
+			console.log({
+				nearbyShips: nearbyShipList.length,
+				shipsInRadar: shipsInRadar.length,
+			});
+			if (shipsInRadar.length > 1) {
+				onEnableRadar();
+			} else if (nearbyShipList.length > 0) {
+				onEnableAIS();
+			} else {
+				onEnableSatellite();
+			}
+		}
+	}, [currentLocation]);
 
 	const onAisSignal = (data: SocketShipData) => {
 		console.log("AIS_SIGNAL_RECEIVED", data.email);
@@ -200,10 +226,46 @@ const Map: React.FC<any> = () => {
 		shipsRef.current = ships;
 	});
 
+	const transitionDuration = 750;
+
+	const onEnableRadar = () => {
+		setViewport({
+			...viewport,
+			zoom: 14,
+			transitionDuration,
+			transitionInterpolator: new FlyToInterpolator(),
+		});
+		setDataSource("RADAR");
+	};
+
+	const onEnableAIS = () => {
+		setDataSource("AIS");
+		setViewport({
+			...viewport,
+			zoom: 12.125,
+			transitionDuration,
+			transitionInterpolator: new FlyToInterpolator(),
+		});
+	};
+
+	const onEnableSatellite = () => {
+		setDataSource("SATELLITE");
+		setViewport({
+			...viewport,
+			zoom: 11.5,
+			transitionDuration,
+			transitionInterpolator: new FlyToInterpolator(),
+		});
+	};
+
 	return (
 		<div>
 			<NavigationControls />
-			<SwitchLayers />
+			<SwitchLayers
+				onEnableAIS={onEnableAIS}
+				onEnableRadar={onEnableRadar}
+				onEnableSatellite={onEnableSatellite}
+			/>
 
 			{nearbyShips && <Warnings nearbyShips={nearbyShips} />}
 
@@ -216,6 +278,7 @@ const Map: React.FC<any> = () => {
 				}
 				width="100vw"
 				height="100vh"
+				ref={mapRef}
 				onViewportChange={(viewport) => {
 					setViewport(viewport);
 				}}
@@ -237,6 +300,8 @@ const Map: React.FC<any> = () => {
 								style={{
 									width: "36px",
 									height: "36px",
+									marginLeft: "-18px",
+									marginTop: "-18px",
 									transform: `rotate(${ship.heading}deg)`,
 								}}
 								src="../ShipIcon.png"
