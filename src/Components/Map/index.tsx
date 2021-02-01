@@ -1,7 +1,6 @@
 import axios from "axios";
 import React, { useState, useContext, useEffect } from "react";
 import ReactMapGl, {
-	ViewportProps,
 	Marker,
 	Popup,
 	Source,
@@ -22,13 +21,23 @@ import NavigationControls from "../NavigationControls";
 import SwitchLayers from "../SwitchLayers";
 import Warning from "../Warning";
 import { OtherShips, SocketShipData } from "../../types/types";
-import getNearbyShips, { getHeadingSector } from "../../utils/getNearbyShips";
+import getNearbyShips, {
+	getHeadingSector,
+	getNearbyPirates,
+} from "../../utils/getNearbyShips";
+// import warningSound from "../Map/Warning.mp3";
 
 type WarningsProps = {
 	nearbyShips: Array<OtherShips & { inFOV: boolean }>;
 };
 const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
+	// const [playing, toggle] = useAudio(warningSound);
+
 	if (nearbyShips.filter((ship) => ship.inFOV).length === 1) {
+		// alert(typeof toggle);
+		// if (!playing && typeof toggle === "function") {
+		// 	toggle();
+		// }
 		return (
 			<Warning
 				severity="HIGH"
@@ -72,6 +81,35 @@ const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
 	return null;
 };
 
+const useAudio = (url: string) => {
+	const [audio] = useState(new Audio(url));
+	const [playing, setPlaying] = useState(false);
+
+	const toggle = () => {
+		setPlaying(!playing);
+	};
+
+	useEffect(() => {
+		playing ? audio.play() : audio.pause();
+	}, [playing]);
+
+	useEffect(() => {
+		audio.addEventListener("ended", () => {
+			setPlaying(false);
+		});
+		return () => {
+			audio.removeEventListener("ended", () => {
+				setPlaying(false);
+			});
+		};
+	}, []);
+
+	return [playing, toggle];
+};
+type PirateSignals = {
+	latitude: number;
+	longitude: number;
+};
 const Map: React.FC<any> = () => {
 	const [viewport, setViewport] = useState<any>({
 		latitude: 17.00919245936354,
@@ -79,14 +117,26 @@ const Map: React.FC<any> = () => {
 		zoom: 13,
 	});
 
+	const [showPirateSelector, setShowPirateSelector] = useState(false);
+
 	const [selectedShip, setSelectedShip] = useState<OtherShips | null>(null);
 
 	const [nearbyShips, setNearbyShips] = useState<Array<
 		OtherShips & { inFOV: boolean }
 	> | null>(null);
 
+	const [pirateSignals, setPirateSignals] = useState<PirateSignals[] | null>(
+		null
+	);
+
+	const [pirateLocation, setPirateLocation] = useState<{
+		latitude: number;
+		longitude: number;
+	} | null>(null);
+
 	const [ships, setShips] = useState<OtherShips[]>([]);
 	const shipsRef = React.useRef(ships);
+	const piratesRef = React.useRef(pirateSignals);
 	const mapRef = React.useRef<ReactMapGl>(null);
 	const selectShip = (ship: OtherShips) => {
 		setSelectedShip(ship);
@@ -98,6 +148,7 @@ const Map: React.FC<any> = () => {
 
 	const windowLocation = useHistory();
 	const savedEmail = localStorage.getItem("email");
+
 	useEffect(() => {
 		axios
 			.get(`${process.env.REACT_APP_API_URL}/ships`, {
@@ -165,16 +216,28 @@ const Map: React.FC<any> = () => {
 		if (currentLocation) {
 			const nearbyShipList = getNearbyShips(ships, currentLocation);
 			const shipsInRadar = getNearbyShips(ships, currentLocation, 2);
-			console.log({
-				nearbyShips: nearbyShipList.length,
-				shipsInRadar: shipsInRadar.length,
-			});
 			if (shipsInRadar.length > 1) {
 				onEnableRadar();
 			} else if (nearbyShipList.length > 0) {
 				onEnableAIS();
 			} else {
 				onEnableSatellite();
+			}
+		}
+	}, [currentLocation]);
+
+	const [pirateNearby, setPirateNearby] = useState(false);
+	useEffect(() => {
+		if (currentLocation && pirateSignals) {
+			const nearbyPirates = getNearbyPirates(
+				pirateSignals,
+				currentLocation,
+				3
+			);
+			if (nearbyPirates.length > 0) {
+				setPirateNearby(true);
+			} else {
+				setPirateNearby(false);
 			}
 		}
 	}, [currentLocation]);
@@ -224,7 +287,28 @@ const Map: React.FC<any> = () => {
 
 	useEffect(() => {
 		shipsRef.current = ships;
+		piratesRef.current = pirateSignals;
 	});
+
+	const onPirateSignal = (data: PirateSignals) => {
+		if (piratesRef.current) {
+			setPirateSignals([...piratesRef.current, data]);
+		} else {
+			setPirateSignals([data]);
+		}
+	};
+
+	useEffect(() => {
+		const handler = (data: PirateSignals) => {
+			onPirateSignal(data);
+		};
+
+		socket.on("NEW_PIRATE_SIGNAL", handler);
+
+		return () => {
+			socket.off("NEW_PIRATE_SIGNAL", handler);
+		};
+	}, []);
 
 	const transitionDuration = 750;
 
@@ -260,14 +344,137 @@ const Map: React.FC<any> = () => {
 
 	return (
 		<div>
-			<NavigationControls />
-			<SwitchLayers
-				onEnableAIS={onEnableAIS}
-				onEnableRadar={onEnableRadar}
-				onEnableSatellite={onEnableSatellite}
-			/>
+			{pirateNearby && (
+				<div
+					style={{
+						width: "50%",
+						backgroundColor: "#F42C2C",
+						position: "absolute",
+						bottom: 72,
+						left: 0,
+						borderRadius: 4,
+						transform: "translateX(50%)",
+						padding: "8px 16px",
+						color: "white",
+						zIndex: 10,
+						marginBottom: 16,
+					}}
+				>
+					Unidentified ship nearby, proceed with caution
+				</div>
+			)}
+			{showPirateSelector ? (
+				<>
+					<div
+						style={{
+							width: "50%",
+							backgroundColor: "white",
+							color: "black",
+							position: "absolute",
+							top: 16,
+							left: 0,
+							borderRadius: 4,
+							transform: "translateX(50%)",
+							padding: "8px 16px",
+							zIndex: 10,
+							marginBottom: 16,
+						}}
+					>
+						Click on the location of suspicious ship
+					</div>
 
-			{nearbyShips && <Warnings nearbyShips={nearbyShips} />}
+					<div
+						onClick={() => {
+							if (pirateLocation) {
+								socket.emit("NEW_PIRATE", pirateLocation);
+								if (pirateSignals) {
+									setPirateSignals([
+										...pirateSignals,
+										pirateLocation,
+									]);
+								} else {
+									setPirateSignals([pirateLocation]);
+								}
+								setShowPirateSelector(false);
+							}
+						}}
+						style={{
+							cursor: "pointer",
+							backgroundColor: "white",
+							color: "black",
+							padding: "8px",
+							borderRadius: "4px",
+							position: "absolute",
+							top: "16px",
+							right: "16px",
+							zIndex: 10,
+							textAlign: "right",
+						}}
+					>
+						Report
+					</div>
+
+					<div
+						onClick={() => {
+							setShowPirateSelector(false);
+						}}
+						style={{
+							cursor: "pointer",
+							backgroundColor: "white",
+							color: "red",
+							padding: "8px",
+							borderRadius: "4px",
+							position: "absolute",
+							top: "64px",
+							right: "16px",
+							zIndex: 10,
+							textAlign: "right",
+						}}
+					>
+						Close
+					</div>
+				</>
+			) : (
+				<>
+					<div
+						onClick={() => {
+							setShowPirateSelector(true);
+						}}
+						style={{
+							cursor: "pointer",
+							backgroundColor: "white",
+							color: "red",
+							padding: "8px",
+							borderRadius: "4px",
+							position: "absolute",
+							top: "16px",
+							right: "16px",
+							zIndex: 10,
+							textAlign: "right",
+						}}
+					>
+						Report suspicious ship
+					</div>
+
+					<NavigationControls
+						setViewport={({ latitude, longitude }) => {
+							setViewport({
+								...viewport,
+								latitude,
+								longitude,
+							});
+						}}
+					/>
+
+					<SwitchLayers
+						onEnableAIS={onEnableAIS}
+						onEnableRadar={onEnableRadar}
+						onEnableSatellite={onEnableSatellite}
+					/>
+
+					{nearbyShips && <Warnings nearbyShips={nearbyShips} />}
+				</>
+			)}
 
 			<ReactMapGl
 				{...viewport}
@@ -281,6 +488,14 @@ const Map: React.FC<any> = () => {
 				ref={mapRef}
 				onViewportChange={(viewport) => {
 					setViewport(viewport);
+				}}
+				onClick={(e) => {
+					if (showPirateSelector) {
+						setPirateLocation({
+							latitude: e.lngLat[1],
+							longitude: e.lngLat[0],
+						});
+					}
 				}}
 			>
 				{ships?.map((ship) => (
@@ -392,6 +607,152 @@ const Map: React.FC<any> = () => {
 					</>
 				)}
 
+				{showPirateSelector &&
+					pirateLocation?.latitude &&
+					pirateLocation?.longitude && (
+						<>
+							<Marker
+								key="pirateSelector"
+								latitude={pirateLocation?.latitude}
+								longitude={pirateLocation?.longitude}
+							>
+								<div
+									style={{
+										width: "12px",
+										zIndex: 10,
+										height: "12px",
+										marginLeft: "-6px",
+										marginTop: "-6px",
+										backgroundColor: "red",
+										borderRadius: "12px",
+									}}
+								/>
+							</Marker>
+
+							<Source
+								id="pirateRadius"
+								type="geojson"
+								data={{
+									type: "FeatureCollection",
+									features: [
+										{
+											type: "Feature",
+											properties: {},
+											geometry: {
+												type: "Point",
+												coordinates: [
+													pirateLocation.longitude,
+
+													pirateLocation.latitude,
+												],
+											},
+										},
+									],
+								}}
+							>
+								<Layer
+									id="piratePointSelection"
+									type="circle"
+									paint={{
+										"circle-radius": {
+											stops: [
+												[0, 0],
+												[
+													20,
+													(2 * 1000) /
+														0.075 /
+														Math.cos(
+															(pirateLocation.latitude *
+																Math.PI) /
+																180
+														),
+												],
+											],
+											base: 2,
+										},
+										"circle-color": "red",
+										"circle-opacity": 0.2,
+										"circle-stroke-width": 1,
+									}}
+								/>
+							</Source>
+						</>
+					)}
+
+				{pirateSignals && pirateSignals.length > 0 && (
+					<>
+						{pirateSignals.map((pirate, i) => (
+							<Marker
+								key={`pirate${i}`}
+								latitude={pirate.latitude}
+								longitude={pirate.longitude}
+							>
+								<div
+									style={{
+										width: "12px",
+										zIndex: 10,
+										height: "12px",
+										marginLeft: "-6px",
+										marginTop: "-6px",
+										backgroundColor: "red",
+										borderRadius: "12px",
+									}}
+								/>
+							</Marker>
+						))}
+
+						<Source
+							id="pirateSignalsRadius"
+							type="geojson"
+							data={{
+								type: "FeatureCollection",
+								features: pirateSignals.map((pirate) => {
+									return {
+										type: "Feature",
+										properties: {},
+										geometry: {
+											type: "Point",
+											coordinates: [
+												pirate.longitude,
+												pirate.latitude,
+											],
+										},
+									};
+								}),
+							}}
+						>
+							{pirateSignals.map((pirate, i) => (
+								<Layer
+									key={`pirateRadius${i}`}
+									id={`pirateRadius${i}`}
+									type="circle"
+									paint={{
+										"circle-radius": {
+											stops: [
+												[0, 0],
+												[
+													20,
+													(2 * 1000) /
+														0.075 /
+														Math.cos(
+															(pirate.latitude *
+																Math.PI) /
+																180
+														),
+												],
+											],
+											base: 2,
+										},
+										"circle-color": "red",
+										"circle-opacity": 0.2,
+										"circle-stroke-width": 1,
+									}}
+								/>
+							))}
+						</Source>
+					</>
+				)}
+
 				{currentLocation?.latitude && currentLocation?.longitude && (
 					<Marker
 						key="currentLocation"
@@ -419,7 +780,13 @@ const Map: React.FC<any> = () => {
 						longitude={selectedShip.longitude}
 						onClose={() => setSelectedShip(null)}
 					>
-						<div>{selectedShip.email}</div>
+						<div>
+							Email: {selectedShip.email}
+							<br />
+							Name: {selectedShip.name}
+							<br />
+							Speed: {selectedShip.speed}
+						</div>
 					</Popup>
 				)}
 			</ReactMapGl>

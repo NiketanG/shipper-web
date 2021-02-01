@@ -2,7 +2,16 @@ import React, { useContext } from "react";
 import { CurrentLocationContext } from "../../utils/currentLocationContext";
 import socket from "../../utils/socket";
 
-const NavigationControls: React.FC<any> = () => {
+type Props = {
+	setViewport: ({
+		latitude,
+		longitude,
+	}: {
+		latitude: number;
+		longitude: number;
+	}) => void;
+};
+const NavigationControls: React.FC<Props> = ({ setViewport }) => {
 	const { location, email, setLocation } = useContext(CurrentLocationContext);
 	const savedName = localStorage.getItem("name");
 
@@ -19,6 +28,10 @@ const NavigationControls: React.FC<any> = () => {
 			});
 			setLocation({
 				...newLocation,
+			});
+			setViewport({
+				latitude: newLocation.latitude,
+				longitude: newLocation.longitude,
 			});
 		}
 	};
@@ -37,6 +50,10 @@ const NavigationControls: React.FC<any> = () => {
 			setLocation({
 				...newLocation,
 			});
+			setViewport({
+				latitude: newLocation.latitude,
+				longitude: newLocation.longitude,
+			});
 		}
 	};
 
@@ -54,6 +71,10 @@ const NavigationControls: React.FC<any> = () => {
 			setLocation({
 				...newLocation,
 			});
+			setViewport({
+				latitude: newLocation.latitude,
+				longitude: newLocation.longitude,
+			});
 		}
 	};
 
@@ -70,6 +91,10 @@ const NavigationControls: React.FC<any> = () => {
 			});
 			setLocation({
 				...newLocation,
+			});
+			setViewport({
+				latitude: newLocation.latitude,
+				longitude: newLocation.longitude,
 			});
 		}
 	};
@@ -89,6 +114,10 @@ const NavigationControls: React.FC<any> = () => {
 				setLocation({
 					...newLocation,
 				});
+				setViewport({
+					latitude: newLocation.latitude,
+					longitude: newLocation.longitude,
+				});
 			} else {
 				newLocation.heading = location.heading - 10;
 				socket.emit("AIS_SIGNAL_EMIT", {
@@ -98,6 +127,10 @@ const NavigationControls: React.FC<any> = () => {
 				});
 				setLocation({
 					...newLocation,
+				});
+				setViewport({
+					latitude: newLocation.latitude,
+					longitude: newLocation.longitude,
 				});
 			}
 		}
@@ -119,6 +152,10 @@ const NavigationControls: React.FC<any> = () => {
 					...newLocation,
 					heading: 0,
 				});
+				setViewport({
+					latitude: newLocation.latitude,
+					longitude: newLocation.longitude,
+				});
 			} else {
 				newLocation.heading = location.heading + 10;
 				socket.emit("AIS_SIGNAL_EMIT", {
@@ -128,6 +165,10 @@ const NavigationControls: React.FC<any> = () => {
 				});
 				setLocation({
 					...newLocation,
+				});
+				setViewport({
+					latitude: newLocation.latitude,
+					longitude: newLocation.longitude,
 				});
 			}
 		}

@@ -105,4 +105,40 @@ const getNearbyShips = (
 		});
 };
 
+export const getNearbyPirates = (
+	allShips: Array<{ latitude: number; longitude: number }>,
+	currentLocation: Location,
+	radius: number = parseInt(process.env.REACT_APP_NEARBY_RADIUS || "5")
+): Array<{ latitude: number; longitude: number } & { inFOV: boolean }> => {
+	return allShips
+		.filter(
+			(ship) =>
+				getDistance(
+					{
+						...ship,
+						heading: 0,
+						speed: 0,
+					},
+					currentLocation
+				) < radius
+		)
+		.map((ship) => {
+			const angle = getAngle(currentLocation, {
+				...ship,
+				heading: 0,
+				speed: 0,
+			});
+			const angleRange = parseInt(
+				process.env.REACT_APP_NEARBY_ANGLE || "35"
+			);
+
+			const angleDiff =
+				((currentLocation?.heading - angle + 180 + 360) % 360) - 180;
+			return {
+				...ship,
+				inFOV: angleDiff >= -angleRange && angleDiff <= angleRange,
+			};
+		});
+};
+
 export default getNearbyShips;
