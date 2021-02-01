@@ -13,17 +13,19 @@ Developed for **ASEAN-India Hackathon** 2021 - PS7.
 
 ##### Prerequisites
 
-- [Mapbox Account](https://account.mapbox.com/) & [Access token](https://account.mapbox.com/access-tokens/create)
-- [Shipper-Server](https://github.com/NiketanG/shipper-server) running
-- [Node.js](https://nodejs.org/) Installed
+-   [Mapbox Account](https://account.mapbox.com/) & [Access token](https://account.mapbox.com/access-tokens/create)
+-   [Shipper-Server](https://github.com/NiketanG/shipper-server) running
+-   [Node.js](https://nodejs.org/) Installed
 
 ##### Configure Environment Variables
 
 Make sure you have set the following environment variables. You can also use a **.env** file. An .env.example file is provided for the format
+
 ```
 REACT_APP_MAPBOX_ACCESS_TOKEN=Access token from Mapbox
 REACT_APP_API_URL=Url of Shipper-Server
 ```
+
 ##### Install Dependencies
 
 ```
