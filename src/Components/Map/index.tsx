@@ -25,26 +25,30 @@ import NavigationControls from "../NavigationControls";
 import SwitchLayers from "../SwitchLayers";
 import Warning from "../Warning";
 import { OtherShips, SocketShipData } from "../../types/types";
-import getNearbyShips, {
-	getHeadingSector,
-	getNearbyPirates,
-} from "../../utils/getNearbyShips";
+import getNearbyShips, { getNearbyPirates } from "../../utils/getNearbyShips";
 import { strings } from "../../utils/strings";
 // import warningSound from "../Map/Warning.mp3";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const warningSound = require("../Map/Warning.mp3");
+import useSound from "use-sound";
 
 type WarningsProps = {
 	nearbyShips: Array<OtherShips & { inFOV: boolean }>;
+	playAudio: () => void;
+	pauseAudio: () => void;
 };
-const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
+const Warnings: React.FC<WarningsProps> = ({
+	nearbyShips,
+	playAudio,
+	pauseAudio,
+}) => {
 	const { language } = useContext(CurrentLocationContext);
 
-	// const [playing, toggle] = useAudio(warningSound);
-
 	if (nearbyShips.filter((ship) => ship.inFOV).length === 1) {
-		// alert(typeof toggle);
-		// if (!playing && typeof toggle === "function") {
-		// 	toggle();
-		// }
+		playAudio();
+		setTimeout(() => {
+			pauseAudio();
+		}, 2000);
 		return (
 			<Warning
 				severity="HIGH"
@@ -54,6 +58,10 @@ const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
 	}
 
 	if (nearbyShips.length === 1) {
+		playAudio();
+		setTimeout(() => {
+			pauseAudio();
+		}, 1000);
 		return (
 			<Warning
 				severity="LOW"
@@ -63,6 +71,10 @@ const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
 	}
 
 	if (nearbyShips.filter((ship) => ship.inFOV).length >= 2) {
+		playAudio();
+		setTimeout(() => {
+			pauseAudio();
+		}, 2000);
 		return (
 			<Warning
 				severity="HIGH"
@@ -72,6 +84,10 @@ const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
 	}
 
 	if (nearbyShips.length > 1) {
+		playAudio();
+		setTimeout(() => {
+			pauseAudio();
+		}, 2000);
 		return (
 			<Warning
 				severity="MEDIUM"
@@ -82,31 +98,6 @@ const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
 	return null;
 };
 
-const useAudio = (url: string) => {
-	const [audio] = useState(new Audio(url));
-	const [playing, setPlaying] = useState(false);
-
-	const toggle = () => {
-		setPlaying(!playing);
-	};
-
-	useEffect(() => {
-		playing ? audio.play() : audio.pause();
-	}, [playing]);
-
-	useEffect(() => {
-		audio.addEventListener("ended", () => {
-			setPlaying(false);
-		});
-		return () => {
-			audio.removeEventListener("ended", () => {
-				setPlaying(false);
-			});
-		};
-	}, []);
-
-	return [playing, toggle];
-};
 type PirateSignals = {
 	latitude: number;
 	longitude: number;
@@ -347,8 +338,30 @@ const Map: React.FC<any> = () => {
 		});
 	};
 
+	const audioRef = React.useRef<HTMLAudioElement>(null);
+
+	const playAudio = () => {
+		audioRef?.current?.play();
+	};
+
+	const pauseAudio = () => {
+		audioRef?.current?.pause();
+	};
+
 	return (
 		<div>
+			<audio
+				style={{
+					position: "absolute",
+					right: 16,
+					bottom: 16,
+					zIndex: 10,
+				}}
+				ref={audioRef}
+				src={`${process.env.PUBLIC_URL}/Warning.mp3`}
+				id="warningAudioPlayer"
+				className="warningAudioPlayer"
+			></audio>
 			<select
 				id="languages"
 				name="languages"
@@ -361,13 +374,10 @@ const Map: React.FC<any> = () => {
 				onChange={(e) => {
 					setLanguage(e.target.value as Languages);
 				}}
+				defaultValue={language || "ENG"}
 			>
 				{LanguagesList.map((lang, i) => (
-					<option
-						selected={language === lang.value}
-						value={lang.value}
-						key={lang.value}
-					>
+					<option value={lang.value} key={lang.value}>
 						{lang.label}
 					</option>
 				))}
@@ -501,7 +511,13 @@ const Map: React.FC<any> = () => {
 						onEnableSatellite={onEnableSatellite}
 					/>
 
-					{nearbyShips && <Warnings nearbyShips={nearbyShips} />}
+					{nearbyShips && (
+						<Warnings
+							nearbyShips={nearbyShips}
+							playAudio={playAudio}
+							pauseAudio={pauseAudio}
+						/>
+					)}
 				</>
 			)}
 
