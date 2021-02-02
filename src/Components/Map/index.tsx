@@ -13,7 +13,11 @@ import mapboxgl from "mapbox-gl";
 (mapboxgl as any).workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
 
 import { useHistory } from "react-router-dom";
-import { CurrentLocationContext } from "../../utils/currentLocationContext";
+import {
+	CurrentLocationContext,
+	Languages,
+	LanguagesList,
+} from "../../utils/currentLocationContext";
 import { DataSourceContext } from "../../utils/DataSourceContext";
 import socket from "../../utils/socket";
 
@@ -25,12 +29,15 @@ import getNearbyShips, {
 	getHeadingSector,
 	getNearbyPirates,
 } from "../../utils/getNearbyShips";
+import { strings } from "../../utils/strings";
 // import warningSound from "../Map/Warning.mp3";
 
 type WarningsProps = {
 	nearbyShips: Array<OtherShips & { inFOV: boolean }>;
 };
 const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
+	const { language } = useContext(CurrentLocationContext);
+
 	// const [playing, toggle] = useAudio(warningSound);
 
 	if (nearbyShips.filter((ship) => ship.inFOV).length === 1) {
@@ -41,9 +48,7 @@ const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
 		return (
 			<Warning
 				severity="HIGH"
-				text={`You are heading towards another ship within ${
-					process.env.REACT_APP_NEARBY_RADIUS || 5
-				} kms.`}
+				text={strings[language].Warning.HeadingTowards}
 			/>
 		);
 	}
@@ -52,9 +57,7 @@ const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
 		return (
 			<Warning
 				severity="LOW"
-				text={`There is another ship nearby within ${
-					process.env.REACT_APP_NEARBY_RADIUS || 5
-				} kms. `}
+				text={strings[language].Warning.ShipNearby}
 			/>
 		);
 	}
@@ -63,7 +66,7 @@ const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
 		return (
 			<Warning
 				severity="HIGH"
-				text={`You are entering a region with traffic`}
+				text={strings[language].Warning.TrafficRegion}
 			/>
 		);
 	}
@@ -72,9 +75,7 @@ const Warnings: React.FC<WarningsProps> = ({ nearbyShips }) => {
 		return (
 			<Warning
 				severity="MEDIUM"
-				text={`There are multiple ships nearby within ${
-					process.env.REACT_APP_NEARBY_RADIUS || 5
-				}kms.`}
+				text={strings[language].Warning.MultipleNearby}
 			/>
 		);
 	}
@@ -142,9 +143,13 @@ const Map: React.FC<any> = () => {
 		setSelectedShip(ship);
 	};
 
-	const { location: currentLocation, setEmail, setLocation } = useContext(
-		CurrentLocationContext
-	);
+	const {
+		location: currentLocation,
+		setEmail,
+		setLocation,
+		language,
+		setLanguage,
+	} = useContext(CurrentLocationContext);
 
 	const windowLocation = useHistory();
 	const savedEmail = localStorage.getItem("email");
@@ -344,6 +349,29 @@ const Map: React.FC<any> = () => {
 
 	return (
 		<div>
+			<select
+				id="languages"
+				name="languages"
+				style={{
+					position: "absolute",
+					right: 16,
+					bottom: 16,
+					zIndex: 10,
+				}}
+				onChange={(e) => {
+					setLanguage(e.target.value as Languages);
+				}}
+			>
+				{LanguagesList.map((lang, i) => (
+					<option
+						selected={language === lang.value}
+						value={lang.value}
+						key={lang.value}
+					>
+						{lang.label}
+					</option>
+				))}
+			</select>
 			{pirateNearby && (
 				<div
 					style={{
@@ -360,7 +388,7 @@ const Map: React.FC<any> = () => {
 						marginBottom: 16,
 					}}
 				>
-					Unidentified ship nearby, proceed with caution
+					{strings[language].Warning.PirateWarn}
 				</div>
 			)}
 			{showPirateSelector ? (
@@ -380,7 +408,8 @@ const Map: React.FC<any> = () => {
 							marginBottom: 16,
 						}}
 					>
-						Click on the location of suspicious ship
+						{strings[language].Info.SelectPirate}
+						{/* Click on the location of suspicious ship */}
 					</div>
 
 					<div
@@ -411,7 +440,7 @@ const Map: React.FC<any> = () => {
 							textAlign: "right",
 						}}
 					>
-						Report
+						{strings[language].Info.Report}
 					</div>
 
 					<div
@@ -431,7 +460,7 @@ const Map: React.FC<any> = () => {
 							textAlign: "right",
 						}}
 					>
-						Close
+						{strings[language].Info.Close}
 					</div>
 				</>
 			) : (
@@ -453,7 +482,7 @@ const Map: React.FC<any> = () => {
 							textAlign: "right",
 						}}
 					>
-						Report suspicious ship
+						{strings[language].Info.ReportPirate}
 					</div>
 
 					<NavigationControls
@@ -781,11 +810,11 @@ const Map: React.FC<any> = () => {
 						onClose={() => setSelectedShip(null)}
 					>
 						<div>
-							Email: {selectedShip.email}
+							{strings[language].Info.Email}: {selectedShip.email}
 							<br />
-							Name: {selectedShip.name}
+							{strings[language].Info.Name}: {selectedShip.name}
 							<br />
-							Speed: {selectedShip.speed}
+							{strings[language].Info.Speed}: {selectedShip.speed}
 						</div>
 					</Popup>
 				)}

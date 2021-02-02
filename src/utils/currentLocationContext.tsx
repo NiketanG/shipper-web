@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import React, { createContext, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 
 type Location = {
 	latitude: number;
@@ -8,16 +8,39 @@ type Location = {
 	speed: number;
 };
 
+export type Languages = "ENG" | "HIN" | "MALAY" | "FIL";
+export const LanguagesList = [
+	{
+		label: "English",
+		value: "ENG",
+	},
+	{
+		label: "Hindi",
+		value: "HIN",
+	},
+	{
+		label: "Malay",
+		value: "MALAY",
+	},
+	{
+		label: "Filipino",
+		value: "FIL",
+	},
+];
 type LocationContextType = {
 	location: Location | null;
 	email: string | null;
+	language: Languages;
 	setEmail: (newEmail: string) => void;
 	setLocation: (location: Location) => void;
+	setLanguage: (newLanguage: Languages) => void;
 };
 
 export const CurrentLocationContext = createContext<LocationContextType>({
 	email: null,
 	location: null,
+	language: "ENG",
+	setLanguage: () => {},
 	setEmail: () => {},
 	setLocation: () => {},
 });
@@ -36,6 +59,20 @@ const LocationContextProvider: React.FC<Props> = ({ children }) => {
 
 	const [email, setEmail] = useState<string | null>(null);
 
+	useEffect(() => {
+		const lang = localStorage.getItem("language");
+		if (lang) {
+			setLanguage(lang as Languages);
+		}
+	}, []);
+
+	const [language, setLanguage] = useState<Languages>("ENG");
+
+	const updateLanguage = (newLang: Languages) => {
+		localStorage.setItem("language", newLang);
+		setLanguage(newLang);
+	};
+
 	const updateLocation = (newLocation: Location) => {
 		setLocation({
 			...newLocation,
@@ -50,7 +87,9 @@ const LocationContextProvider: React.FC<Props> = ({ children }) => {
 		<CurrentLocationContext.Provider
 			value={{
 				email,
+				language,
 				location,
+				setLanguage: updateLanguage,
 				setEmail: updateEmail,
 				setLocation: updateLocation,
 			}}
