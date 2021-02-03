@@ -113,6 +113,7 @@ const NavigationGuide: React.FC<Props> = ({ nearbyShips }) => {
 					className="cursor-pointer"
 					width={30}
 					height={30}
+					onClick={() => setShowGuide(false)}
 					style={{
 						filter: "invert(1)",
 					}}
