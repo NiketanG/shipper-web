@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { CurrentLocationContext } from "../../utils/currentLocationContext";
+import { AppConfigContext } from "../../utils/AppConfigContext";
 import socket from "../../utils/socket";
 
 type Props = {
@@ -12,14 +12,16 @@ type Props = {
 	}) => void;
 };
 const NavigationControls: React.FC<Props> = ({ setViewport }) => {
-	const { location, email, setLocation } = useContext(CurrentLocationContext);
+	const { location, email, setLocation, speed } = useContext(
+		AppConfigContext
+	);
 	const savedName = localStorage.getItem("name");
 
 	const goForward = () => {
 		if (location) {
 			const newLocation = {
 				...location,
-				latitude: location.latitude + 0.0005,
+				latitude: location.latitude + speed,
 			};
 			socket.emit("AIS_SIGNAL_EMIT", {
 				email,
@@ -40,7 +42,7 @@ const NavigationControls: React.FC<Props> = ({ setViewport }) => {
 		if (location) {
 			const newLocation = {
 				...location,
-				latitude: location.latitude - 0.0005,
+				latitude: location.latitude - speed,
 			};
 			socket.emit("AIS_SIGNAL_EMIT", {
 				email,
@@ -61,7 +63,7 @@ const NavigationControls: React.FC<Props> = ({ setViewport }) => {
 		if (location) {
 			const newLocation = {
 				...location,
-				longitude: location.longitude - 0.0005,
+				longitude: location.longitude - speed,
 			};
 			socket.emit("AIS_SIGNAL_EMIT", {
 				email,
@@ -82,7 +84,7 @@ const NavigationControls: React.FC<Props> = ({ setViewport }) => {
 		if (location) {
 			const newLocation = {
 				...location,
-				longitude: location.longitude + 0.0005,
+				longitude: location.longitude + speed,
 			};
 			socket.emit("AIS_SIGNAL_EMIT", {
 				email,
@@ -178,7 +180,7 @@ const NavigationControls: React.FC<Props> = ({ setViewport }) => {
 		<div
 			style={{
 				position: "absolute",
-				bottom: 16,
+				bottom: 112,
 				left: 16,
 				zIndex: 10,
 				display: "flex",

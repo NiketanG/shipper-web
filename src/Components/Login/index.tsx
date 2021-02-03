@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useContext, useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { CurrentLocationContext } from "../../utils/currentLocationContext";
+import { AppConfigContext } from "../../utils/AppConfigContext";
 
 const Login: React.FC<any> = () => {
 	const windowLocation = useHistory();
@@ -9,9 +9,7 @@ const Login: React.FC<any> = () => {
 	const [email, setEmail] = useState("");
 	const [name, setName] = useState("");
 
-	const { setEmail: saveEmail, setLocation } = useContext(
-		CurrentLocationContext
-	);
+	const { setEmail: saveEmail, setLocation } = useContext(AppConfigContext);
 
 	const login = async () => {
 		if (email.length > 0 && name.length > 0) {

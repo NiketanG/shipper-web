@@ -43,7 +43,10 @@ export const getHeadingSector = (
 
 	return points;
 };
-const getDistance = (shipLocation: Location, currentLocation: Location) => {
+export const getDistance = (
+	shipLocation: Location,
+	currentLocation: Location
+): number => {
 	const radius = 6371; // Radius of earth in Kilometers
 	const dLat = degreeToRadians(
 		currentLocation.latitude - shipLocation.latitude
@@ -87,7 +90,7 @@ const getNearbyShips = (
 	allShips: OtherShips[],
 	currentLocation: Location,
 	radius: number = parseInt(process.env.REACT_APP_NEARBY_RADIUS || "5")
-): Array<OtherShips & { inFOV: boolean }> => {
+): Array<OtherShips & { inFOV: boolean; distance: number }> => {
 	return allShips
 		.filter((ship) => getDistance(ship, currentLocation) < radius)
 		.map((ship) => {
@@ -101,6 +104,7 @@ const getNearbyShips = (
 			return {
 				...ship,
 				inFOV: angleDiff >= -angleRange && angleDiff <= angleRange,
+				distance: getDistance(ship, currentLocation),
 			};
 		});
 };

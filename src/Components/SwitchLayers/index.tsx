@@ -16,56 +16,44 @@ const SwitchLayers: React.FC<Props> = ({
 
 	return (
 		<div
+			className="absolute flex flex-col items-center bg-white z-10 rounded-lg justify-center"
 			style={{
 				position: "absolute",
-				top: 16,
-				left: 16,
-				zIndex: 10,
-				display: "flex",
-				flexDirection: "column",
-				alignItems: "center",
-				justifyContent: "center",
+				bottom: 112,
+				right: 16,
 			}}
 		>
 			<img
 				src="/AIS.png"
+				className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-lg"
 				style={{
-					width: "36px",
-					height: "36px",
-					backgroundColor: "white",
 					filter: dataSource === "AIS" ? "invert(1)" : "",
-					padding: "10px",
-					borderRadius: "4px",
+					padding: "19px",
+					opacity: dataSource === "AIS" ? 1 : 0.7,
 				}}
 				alt="AIS"
 				onClick={onEnableAIS}
 			/>
 
 			<img
-				src="/Satellite.png"
+				src="/Satellite.svg"
+				className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-lg"
 				style={{
-					width: "36px",
-					height: "36px",
-					padding: "10px",
-					borderRadius: "4px",
-					marginTop: "4px",
-					backgroundColor:
-						dataSource === "SATELLITE" ? "black" : "white",
+					padding: "19px",
+					filter: dataSource === "SATELLITE" ? "invert(1)" : "",
+					opacity: dataSource === "SATELLITE" ? 1 : 0.7,
 				}}
 				alt="Satellite"
 				onClick={onEnableSatellite}
 			/>
 			<img
+				className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-lg"
 				src="/Radar.png"
 				onClick={onEnableRadar}
 				style={{
-					width: "36px",
-					height: "36px",
-					padding: "10px",
-					borderRadius: "4px",
-					marginTop: "4px",
+					padding: "19px",
 					filter: dataSource === "RADAR" ? "invert(1)" : "",
-					backgroundColor: "white",
+					opacity: dataSource === "RADAR" ? 1 : 0.7,
 				}}
 				alt="Radar"
 			/>

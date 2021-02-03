@@ -2,17 +2,17 @@ import React from "react";
 import Map from "./Components/Map";
 import "./styles/index.css";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-import LocationContextProvider from "./utils/currentLocationContext";
+import AppContextProvider from "./utils/AppConfigContext";
 import DataSourceContextProvider from "./utils/DataSourceContext";
 import Login from "./Components/Login";
 
 const MapPage: React.FC<any> = () => {
 	return (
-		<LocationContextProvider>
+		<AppContextProvider>
 			<DataSourceContextProvider>
 				<Map />
 			</DataSourceContextProvider>
-		</LocationContextProvider>
+		</AppContextProvider>
 	);
 };
 

@@ -20,3 +20,17 @@ export type Location = {
 	heading: number;
 	speed: number;
 };
+
+export type PirateSignals = {
+	latitude: number;
+	longitude: number;
+};
+
+export enum WarningTypes {
+	MultipleShips,
+	NearbyShip,
+	CollisionWarning,
+	UnidentifiedShip,
+	None,
+	TrafficRegion,
+}
