@@ -24,31 +24,64 @@ const NavigationGuide: React.FC<Props> = ({ nearbyShips }) => {
 			// .sort((a, b) => a - b)
 			if (headingShips?.length > 0) {
 				setShowGuide(true);
-				const minusDiff =
+				let minusDiff =
 					headingShips[0] -
 					parseInt(process.env.REACT_APP_NEARBY_ANGLE || "35");
 
+				if (minusDiff < 0) {
+					minusDiff = 360 + minusDiff;
+				}
 				const plusDiff =
 					headingShips[0] +
 					parseInt(process.env.REACT_APP_NEARBY_ANGLE || "35");
-				if (
-					plusDiff - location?.heading <
-					location.heading - minusDiff
+
+				const closest = [minusDiff, plusDiff].reduce(function (
+					prev,
+					curr
 				) {
-					setGoTo(plusDiff);
-					setMoveBy(plusDiff - location.heading);
-					console.log({
-						goto: plusDiff,
-						move: plusDiff - location.heading,
-					});
+					return Math.abs(curr - location.heading) <
+						Math.abs(prev - location.heading)
+						? curr
+						: prev;
+				});
+
+				console.log({
+					ship: headingShips[0],
+					minusDiff,
+					plusDiff,
+					closest,
+				});
+
+				setGoTo(closest);
+				if (location.heading > closest) {
+					setMoveBy(location.heading - closest);
 				} else {
-					setGoTo(minusDiff);
-					setMoveBy(location.heading - minusDiff);
-					console.log({
-						goto: minusDiff,
-						move: location.heading - minusDiff,
-					});
+					setMoveBy(closest - location.heading);
 				}
+
+				// if (
+				// 	plusDiff - location?.heading <
+				// 	location.heading - minusDiff
+				// ) {
+				// 	setGoTo(plusDiff);
+				// 	setMoveBy(
+				// 		plusDiff -
+				// 			(location.heading === 360 ? 0 : location.heading)
+				// 	);
+				// 	console.log({
+				// 		goto: plusDiff,
+				// 		move: plusDiff - location.heading,
+				// 	});
+				// 	console.log("plus");
+				// } else {
+				// 	setGoTo(minusDiff);
+				// 	setMoveBy(location.heading - minusDiff);
+				// 	console.log("minus");
+				// 	console.log({
+				// 		goto: minusDiff,
+				// 		move: location.heading - minusDiff,
+				// 	});
+				// }
 			} else {
 				setShowGuide(false);
 			}
@@ -76,7 +109,7 @@ const NavigationGuide: React.FC<Props> = ({ nearbyShips }) => {
 					padding: "16px 32px",
 				}}
 			>
-				{location?.heading > goTo ? (
+				{(location?.heading === 360 ? 0 : location.heading) > goTo ? (
 					<img
 						src="/Left.svg"
 						alt="Left"
