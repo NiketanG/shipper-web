@@ -19,6 +19,7 @@ import socket from "../../utils/socket";
 import NavigationControls from "../NavigationControls";
 import SwitchLayers from "../SwitchLayers";
 import {
+	NearbyShip,
 	OtherShips,
 	PirateSignals,
 	SocketShipData,
@@ -34,6 +35,7 @@ import BottomBar from "../BottomBar";
 import Warning from "../Warning";
 import PirateSelector from "../PirateSelector/index";
 import SlideInModal from "../SlideInModal";
+import NavigationGuide from "../NavigationGuide";
 
 const Map: React.FC<any> = () => {
 	const [viewport, setViewport] = useState<any>({
@@ -48,9 +50,9 @@ const Map: React.FC<any> = () => {
 
 	const [selectedShip, setSelectedShip] = useState<OtherShips | null>(null);
 
-	const [nearbyShips, setNearbyShips] = useState<Array<
-		OtherShips & { inFOV: boolean; distance: number }
-	> | null>(null);
+	const [nearbyShips, setNearbyShips] = useState<Array<NearbyShip> | null>(
+		null
+	);
 
 	const [pirateSignals, setPirateSignals] = useState<PirateSignals[] | null>(
 		null
@@ -74,8 +76,7 @@ const Map: React.FC<any> = () => {
 		setEmail,
 		setLocation,
 		language,
-		mute,
-		toggleMute,
+		showGuide,
 	} = useContext(AppConfigContext);
 
 	const windowLocation = useHistory();
@@ -479,6 +480,8 @@ const Map: React.FC<any> = () => {
 					)}
 				</>
 			)}
+
+			{showGuide && <NavigationGuide nearbyShips={nearbyShips} />}
 
 			<ReactMapGl
 				{...viewport}

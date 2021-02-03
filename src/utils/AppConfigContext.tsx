@@ -29,6 +29,8 @@ type AppConfigContextType = {
 	mute: boolean;
 	muteType: WarningTypes;
 	speed: number;
+	showGuide: boolean;
+	toggleGuide: () => void;
 	setSpeed: (newSpeed: number) => void;
 	setMuteType: (newType: WarningTypes) => void;
 	toggleMute: () => void;
@@ -44,6 +46,8 @@ export const AppConfigContext = createContext<AppConfigContextType>({
 	mute: false,
 	muteType: WarningTypes.None,
 	speed: 0.0005,
+	showGuide: true,
+	toggleGuide: () => {},
 	setSpeed: () => {},
 	setMuteType: () => {},
 	toggleMute: () => {},
@@ -144,6 +148,9 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
 	const [speed, setSpeed] = useState(0.001);
 	const updateSpeed = (newSpeed: number) => setSpeed(newSpeed);
 
+	const [showGuide, setShowGuide] = useState(true);
+	const toggleGuide = () => setShowGuide(!showGuide);
+
 	return (
 		<AppConfigContext.Provider
 			value={{
@@ -154,6 +161,8 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
 				toggleMute,
 				muteType,
 				speed,
+				showGuide,
+				toggleGuide,
 				setSpeed: updateSpeed,
 				setMuteType: updateMuteType,
 				setLanguage: updateLanguage,

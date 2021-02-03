@@ -7,6 +7,13 @@ export type OtherShips = {
 	name: string;
 };
 
+export interface NearbyShip extends OtherShips {
+	inFOV: boolean;
+	distance: number;
+	angle: number;
+	angleDiff: number;
+}
+
 export type SocketShipData = {
 	email: string;
 	name: string;

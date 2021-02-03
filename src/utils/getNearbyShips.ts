@@ -1,4 +1,4 @@
-import { Location, OtherShips } from "../types/types";
+import { Location, NearbyShip, OtherShips } from "../types/types";
 import { Position } from "geojson";
 
 const degreeToRadians = (degrees: number) => {
@@ -90,7 +90,7 @@ const getNearbyShips = (
 	allShips: OtherShips[],
 	currentLocation: Location,
 	radius: number = parseInt(process.env.REACT_APP_NEARBY_RADIUS || "5")
-): Array<OtherShips & { inFOV: boolean; distance: number }> => {
+): Array<NearbyShip> => {
 	return allShips
 		.filter((ship) => getDistance(ship, currentLocation) < radius)
 		.map((ship) => {
@@ -103,6 +103,8 @@ const getNearbyShips = (
 				((currentLocation.heading - angle + 180 + 360) % 360) - 180;
 			return {
 				...ship,
+				angle,
+				angleDiff,
 				inFOV: angleDiff >= -angleRange && angleDiff <= angleRange,
 				distance: getDistance(ship, currentLocation),
 			};
