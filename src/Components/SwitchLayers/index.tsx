@@ -1,4 +1,5 @@
 import React, { useContext } from "react";
+import { AppConfigContext } from "../../utils/AppConfigContext";
 import { DataSourceContext } from "../../utils/DataSourceContext";
 
 type Props = {
@@ -12,12 +13,14 @@ const SwitchLayers: React.FC<Props> = ({
 	onEnableRadar,
 	onEnableSatellite,
 }) => {
+	const { theme } = useContext(AppConfigContext);
 	const { dataSource } = useContext(DataSourceContext);
-
+	const darkMode = theme === "dark";
 	return (
 		<div
 			className="absolute flex flex-col items-center bg-white z-10 rounded-lg justify-center"
 			style={{
+				filter: darkMode ? "invert(1)" : "none",
 				position: "absolute",
 				bottom: 112,
 				right: 16,
@@ -27,9 +30,9 @@ const SwitchLayers: React.FC<Props> = ({
 				src="/AIS.png"
 				className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-lg"
 				style={{
-					filter: dataSource === "AIS" ? "invert(1)" : "",
+					filter: dataSource === "AIS" ? "invert(1)" : "none",
 					padding: "19px",
-					opacity: dataSource === "AIS" ? 1 : 0.7,
+					opacity: dataSource === "AIS" ? (darkMode ? 0.5 : 1) : 0.7,
 				}}
 				alt="AIS"
 				onClick={onEnableAIS}
@@ -40,8 +43,9 @@ const SwitchLayers: React.FC<Props> = ({
 				className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-lg"
 				style={{
 					padding: "19px",
-					filter: dataSource === "SATELLITE" ? "invert(1)" : "",
-					opacity: dataSource === "SATELLITE" ? 1 : 0.7,
+					filter: dataSource === "SATELLITE" ? "invert(1)" : "none",
+					opacity:
+						dataSource === "SATELLITE" ? (darkMode ? 0.5 : 1) : 0.7,
 				}}
 				alt="Satellite"
 				onClick={onEnableSatellite}
@@ -52,8 +56,9 @@ const SwitchLayers: React.FC<Props> = ({
 				onClick={onEnableRadar}
 				style={{
 					padding: "19px",
-					filter: dataSource === "RADAR" ? "invert(1)" : "",
-					opacity: dataSource === "RADAR" ? 1 : 0.7,
+					filter: dataSource === "RADAR" ? "invert(1)" : "none",
+					opacity:
+						dataSource === "RADAR" ? (darkMode ? 0.5 : 1) : 0.7,
 				}}
 				alt="Radar"
 			/>

@@ -22,7 +22,7 @@ const SlideInModal: React.FC<Props> = ({ children, open }) => {
 			}`}
 			style={{
 				width,
-				height: "calc(100% - 96px)",
+				height: `calc(100% - ${isMobile ? "80px" : " 96px"})`,
 			}}
 		>
 			<animated.div

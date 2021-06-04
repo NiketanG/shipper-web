@@ -35,6 +35,8 @@ export const strings = {
 			Speed: "Speed",
 			Distance: "Distance",
 			SelectedShip: "Selected Ship",
+			Settings: "Settings",
+			Radius: "Radius",
 		},
 	},
 	HIN: {
@@ -74,6 +76,9 @@ export const strings = {
 			Speed: "गति",
 			Distance: "दूरी",
 			SelectedShip: "चयनित जहाज",
+			Settings: "Settings",
+			Radius: "Radius",
+			Theme: "Theme",
 		},
 	},
 	FIL: {
@@ -111,6 +116,9 @@ export const strings = {
 			Speed: "Pangalan",
 			Distance: "Distansya",
 			SelectedShip: "Napiling Barko",
+			Settings: "Settings",
+			Radius: "Radius",
+			Theme: "Theme",
 		},
 	},
 	MALAY: {
@@ -148,6 +156,9 @@ export const strings = {
 			Speed: "Kepantasan",
 			Distance: "Jarak",
 			SelectedShip: "Kapal Terpilih",
+			Settings: "Settings",
+			Radius: "Radius",
+			Theme: "Theme",
 		},
 	},
 };

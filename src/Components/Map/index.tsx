@@ -1,11 +1,6 @@
 import axios from "axios";
 import React, { useState, useContext, useEffect } from "react";
-import ReactMapGl, {
-	Marker,
-	Source,
-	Layer,
-	FlyToInterpolator,
-} from "react-map-gl";
+import ReactMapGl, { FlyToInterpolator } from "react-map-gl";
 import mapboxgl from "mapbox-gl";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -25,17 +20,20 @@ import {
 	SocketShipData,
 	WarningTypes,
 } from "../../types/types";
-import getNearbyShips, {
-	getDistance,
-	getNearbyPirates,
-} from "../../utils/getNearbyShips";
+import getNearbyShips, { getNearbyPirates } from "../../utils/getNearbyShips";
 import { strings } from "../../utils/strings";
 import { Warnings } from "../Warning/Warning_Container";
 import BottomBar from "../BottomBar";
 import Warning from "../Warning";
-import PirateSelector from "../PirateSelector/index";
+import PirateSelector from "../PirateSelector";
 import SlideInModal from "../SlideInModal";
 import NavigationGuide from "../NavigationGuide";
+import SelectedShip from "../ShipDetails";
+import NearbyShips from "../NearbyShips";
+import Pirates from "../Pirates";
+import MarkerSelector from "../PirateSelector/MarkerSelector";
+import ShipLocation from "../ShipLocation";
+import ShipIcon from "../ShipIcon";
 
 const Map: React.FC<any> = () => {
 	const [viewport, setViewport] = useState<any>({
@@ -45,6 +43,12 @@ const Map: React.FC<any> = () => {
 	});
 
 	const [previousViewport, setPreviousViewport] = useState({});
+
+	const signOut = () => {
+		localStorage.removeItem("name");
+		localStorage.removeItem("email");
+		windowLocation.replace("/");
+	};
 
 	const [showPirateSelector, setShowPirateSelector] = useState(false);
 
@@ -67,17 +71,18 @@ const Map: React.FC<any> = () => {
 	const shipsRef = React.useRef(ships);
 	const piratesRef = React.useRef(pirateSignals);
 	const mapRef = React.useRef<ReactMapGl>(null);
-	const selectShip = (ship: OtherShips) => {
-		setSelectedShip(ship);
-	};
+	const selectShip = (ship: OtherShips) => setSelectedShip(ship);
 
 	const {
 		location: currentLocation,
+		theme,
 		setEmail,
 		setLocation,
 		language,
 		showGuide,
 	} = useContext(AppConfigContext);
+
+	const darkTheme = theme === "dark";
 
 	const windowLocation = useHistory();
 	const savedEmail = localStorage.getItem("email");
@@ -91,9 +96,7 @@ const Map: React.FC<any> = () => {
 				},
 			})
 			.then((res) => {
-				if (res.status === 200) {
-					setShips(res.data);
-				}
+				if (res.status === 200) setShips(res.data);
 			})
 			.catch((err) => {
 				alert("An error occured");
@@ -127,7 +130,7 @@ const Map: React.FC<any> = () => {
 					}
 				})
 				.catch((err) => {
-					console.log(err);
+					console.error(err);
 					localStorage.removeItem("email");
 					localStorage.removeItem("name");
 					windowLocation.replace("/");
@@ -140,11 +143,11 @@ const Map: React.FC<any> = () => {
 	const { dataSource, setDataSource } = useContext(DataSourceContext);
 
 	useEffect(() => {
-		if (currentLocation) {
+		if (currentLocation)
 			setNearbyShips(getNearbyShips(ships, currentLocation));
-		}
 	}, [ships, currentLocation]);
 
+	// Auto Switch Data Source based on No. of ships nearby
 	useEffect(() => {
 		if (currentLocation) {
 			const nearbyShipList = getNearbyShips(ships, currentLocation);
@@ -160,6 +163,8 @@ const Map: React.FC<any> = () => {
 	}, [currentLocation]);
 
 	const [pirateNearby, setPirateNearby] = useState(false);
+
+	// Check if there are unidentified ships nearby & show warning
 	useEffect(() => {
 		if (currentLocation && pirateSignals) {
 			const nearbyPirates = getNearbyPirates(
@@ -176,7 +181,6 @@ const Map: React.FC<any> = () => {
 	}, [currentLocation]);
 
 	const onAisSignal = (data: SocketShipData) => {
-		console.log("AIS_SIGNAL_RECEIVED", data.email);
 		if (data.email) {
 			const allShips = [...shipsRef.current];
 			const shipIndex = allShips.findIndex((e) => e.email === data.email);
@@ -202,17 +206,12 @@ const Map: React.FC<any> = () => {
 		}
 	};
 
-	const addShip = (ship: OtherShips) => {
+	const addShip = (ship: OtherShips) =>
 		setShips((prevShips) => [...prevShips, ship]);
-	};
 
 	useEffect(() => {
-		const handler = (data: SocketShipData) => {
-			onAisSignal(data);
-		};
-
+		const handler = (data: SocketShipData) => onAisSignal(data);
 		socket.on("AIS_SIGNAL_RECEIVED", handler);
-
 		return () => {
 			socket.off("AIS_SIGNAL_RECEIVED", handler);
 		};
@@ -232,12 +231,8 @@ const Map: React.FC<any> = () => {
 	};
 
 	useEffect(() => {
-		const handler = (data: PirateSignals) => {
-			onPirateSignal(data);
-		};
-
+		const handler = (data: PirateSignals) => onPirateSignal(data);
 		socket.on("NEW_PIRATE_SIGNAL", handler);
-
 		return () => {
 			socket.off("NEW_PIRATE_SIGNAL", handler);
 		};
@@ -283,16 +278,14 @@ const Map: React.FC<any> = () => {
 
 	const audioRef = React.useRef<HTMLAudioElement>(null);
 
-	const playAudio = () => {
-		audioRef?.current?.play();
-	};
+	const playAudio = () => audioRef?.current?.play();
 
-	const pauseAudio = () => {
-		audioRef?.current?.pause();
-	};
+	const pauseAudio = () => audioRef?.current?.pause();
 
 	const [showNearbyShips, setShowNearbyShips] = useState(false);
 	const [showControls, setShowControls] = useState(true);
+
+	const openSettings = () => windowLocation.replace("/settings");
 
 	const addPirate = () => {
 		if (pirateLocation) {
@@ -305,6 +298,7 @@ const Map: React.FC<any> = () => {
 			setShowPirateSelector(false);
 		}
 	};
+
 	return (
 		<div>
 			<audio
@@ -320,109 +314,6 @@ const Map: React.FC<any> = () => {
 				className="warningAudioPlayer"
 			></audio>
 
-			<SlideInModal open={showNearbyShips || selectedShip !== null}>
-				{showNearbyShips ? (
-					<>
-						<div className="flex flex-row justify-between items-center">
-							<p className="font-medium text-2xl">
-								{strings[language].Info.NearbyShips}
-							</p>
-							<img
-								onClick={() => {
-									setShowNearbyShips(false);
-									if (previousViewport) {
-										setViewport({
-											...previousViewport,
-											transitionDuration: 500,
-											transitionInterpolator: new FlyToInterpolator(),
-										});
-									}
-								}}
-								className="cursor-pointer"
-								src="Close.svg"
-								alt="Close"
-								width={28}
-								height={28}
-							/>
-						</div>
-						<div className="flex flex-col my-6">
-							{nearbyShips?.map((ship) => (
-								<div
-									key={ship.email}
-									onClick={() => {
-										setPreviousViewport(viewport);
-										setViewport({
-											...viewport,
-											zoom: 14,
-											latitude: ship.latitude,
-											longitude: ship.longitude,
-											transitionDuration: 500,
-											transitionInterpolator: new FlyToInterpolator(),
-										});
-									}}
-								>
-									<div className="flex flex-col">
-										<p className="text-xl font-medium">
-											{ship.email}
-										</p>
-										<p className="opacity-80">
-											{ship.name}
-										</p>
-										<p className="font-medium opacity-80">
-											{strings[language].Info.Distance}
-											{" : "}
-											{ship.distance.toFixed(2)} Kms
-										</p>
-									</div>
-									<div className="bg-black opacity-40 w-full h-px mx-auto my-4" />
-								</div>
-							))}
-						</div>
-					</>
-				) : selectedShip ? (
-					<>
-						<div className="flex flex-row justify-between items-center">
-							<p className="font-medium text-2xl">
-								{strings[language].Info.SelectedShip}
-							</p>
-							<img
-								className="cursor-pointer"
-								onClick={() => {
-									setSelectedShip(null);
-								}}
-								src="Close.svg"
-								alt="Close"
-								width={28}
-								height={28}
-							/>
-						</div>
-						<div className="flex flex-col my-6">
-							<p>{strings[language].Info.Email}</p>
-							<p className="text-xl font-medium">
-								{selectedShip.email}
-							</p>
-							<p className="mt-4">
-								{strings[language].Info.Name}
-							</p>
-
-							<p className="text-xl font-medium">
-								{selectedShip.name}
-							</p>
-							<p className="mt-4">
-								{strings[language].Info.Distance || "Distance"}
-							</p>
-							<p className="text-xl font-medium">
-								{currentLocation &&
-									`${getDistance(
-										selectedShip,
-										currentLocation
-									).toFixed(2)} Kms`}
-							</p>
-						</div>
-					</>
-				) : null}
-			</SlideInModal>
-
 			<BottomBar
 				controlsShown={showControls}
 				toggleControls={() => setShowControls(!showControls)}
@@ -433,20 +324,39 @@ const Map: React.FC<any> = () => {
 					setShowPirateSelector(!showPirateSelector)
 				}
 			/>
-			{pirateNearby && (
-				<div
-					style={{
-						zIndex: 11,
-					}}
-				>
-					<Warning
-						severity="HIGH"
-						type={WarningTypes.UnidentifiedShip}
-						title={strings[language].Warning.PirateWarnTitle}
-						text={strings[language].Warning.PirateWarn}
+
+			<SlideInModal open={showNearbyShips || selectedShip !== null}>
+				{showNearbyShips ? (
+					<NearbyShips
+						nearbyShips={nearbyShips}
+						previousViewport={previousViewport}
+						selectedShip={selectedShip}
+						setPreviousViewport={setPreviousViewport}
+						setSelectedShip={setSelectedShip}
+						setShowNearbyShips={setShowNearbyShips}
+						setViewport={setViewport}
+						viewport={viewport}
 					/>
-				</div>
+				) : selectedShip ? (
+					<SelectedShip
+						selectedShip={selectedShip}
+						viewport={viewport}
+						previousViewport={previousViewport}
+						setSelectedShip={setSelectedShip}
+						setViewport={setViewport}
+					/>
+				) : null}
+			</SlideInModal>
+
+			{pirateNearby && (
+				<Warning
+					severity="HIGH"
+					type={WarningTypes.UnidentifiedShip}
+					title={strings[language].Warning.PirateWarnTitle}
+					text={strings[language].Warning.PirateWarn}
+				/>
 			)}
+
 			{showPirateSelector ? (
 				<PirateSelector
 					addPirate={addPirate}
@@ -454,6 +364,28 @@ const Map: React.FC<any> = () => {
 				/>
 			) : (
 				<>
+					<img
+						src="/Logout.png"
+						alt="Logout"
+						width={36}
+						height={36}
+						className="cursor-pointer rounded absolute top-0 right-0 z-20 mr-4 mt-4 bg-white p-2"
+						onClick={signOut}
+						style={{
+							filter: darkTheme ? "invert(1)" : "none",
+						}}
+					/>
+					<img
+						src="/Settings.svg"
+						alt="Settings"
+						width={36}
+						height={36}
+						className="cursor-pointer rounded absolute top-8 right-0 z-20 mr-4 mt-4 bg-white p-2"
+						onClick={openSettings}
+						style={{
+							filter: darkTheme ? "invert(1)" : "none",
+						}}
+					/>
 					{showControls && (
 						<NavigationControls
 							setViewport={({ latitude, longitude }) => {
@@ -488,10 +420,12 @@ const Map: React.FC<any> = () => {
 				mapStyle={
 					dataSource === "SATELLITE"
 						? "mapbox://styles/mapbox/satellite-streets-v11"
-						: "mapbox://styles/mapbox/streets-v11"
+						: `mapbox://styles/mapbox/${
+								theme === "light" ? "streets-v11" : "dark-v10"
+						  }`
 				}
 				width="100vw"
-				height="100vh"
+				height={window.innerHeight}
 				ref={mapRef}
 				onViewportChange={(viewport) => {
 					setViewport(viewport);
@@ -505,289 +439,24 @@ const Map: React.FC<any> = () => {
 					}
 				}}
 			>
+				{showPirateSelector && (
+					<MarkerSelector pirateLocation={pirateLocation} />
+				)}
 				{ships?.map((ship) => (
-					<Marker
+					<ShipIcon
+						selectShip={(value) => selectShip(value)}
+						ship={ship}
 						key={ship.email}
-						latitude={ship.latitude}
-						longitude={ship.longitude}
-					>
-						<button
-							style={{
-								background: "none",
-								border: "none",
-								marginLeft: "-28px",
-								marginTop: "-28px",
-							}}
-							onClick={() => selectShip(ship)}
-						>
-							<img
-								width={32}
-								height={32}
-								style={{
-									width: 56,
-									height: 56,
-									transform: `rotate(${ship.heading}deg)`,
-								}}
-								src="../ShipIcon.png"
-								alt={ship.email}
-							/>
-						</button>
-					</Marker>
+					/>
 				))}
 
-				{showPirateSelector &&
-					pirateLocation?.latitude &&
-					pirateLocation?.longitude && (
-						<>
-							<Marker
-								key="pirateSelector"
-								latitude={pirateLocation?.latitude}
-								longitude={pirateLocation?.longitude}
-							>
-								<img
-									style={{
-										width: "36px",
-										height: "36px",
-										marginLeft: "-18px",
-										marginTop: "-18px",
-									}}
-									src="/Warning.svg"
-									alt="Pirate Ship"
-								/>
-							</Marker>
-
-							<Source
-								id="pirateRadius"
-								type="geojson"
-								data={{
-									type: "FeatureCollection",
-									features: [
-										{
-											type: "Feature",
-											properties: {},
-											geometry: {
-												type: "Point",
-												coordinates: [
-													pirateLocation.longitude,
-
-													pirateLocation.latitude,
-												],
-											},
-										},
-									],
-								}}
-							>
-								<Layer
-									id="piratePointSelection"
-									type="circle"
-									paint={{
-										"circle-radius": {
-											stops: [
-												[0, 0],
-												[
-													20,
-													(2.5 * 1000) /
-														0.075 /
-														Math.cos(
-															(pirateLocation.latitude *
-																Math.PI) /
-																180
-														),
-												],
-											],
-											base: 2,
-										},
-										"circle-color": "red",
-										"circle-opacity": 0.2,
-										"circle-stroke-width": 1,
-									}}
-								/>
-							</Source>
-						</>
-					)}
-
 				{pirateSignals && pirateSignals.length > 0 && (
-					<>
-						{pirateSignals.map((pirate, i) => (
-							<Marker
-								key={`pirate${i}`}
-								latitude={pirate.latitude}
-								longitude={pirate.longitude}
-							>
-								<img
-									width={36}
-									height={36}
-									style={{
-										marginLeft: "-12px",
-										marginTop: "-12px",
-									}}
-									src="/Warning.svg"
-									alt="Pirate Ship"
-								/>
-							</Marker>
-						))}
-
-						<Source
-							id="pirateSignalsRadius"
-							type="geojson"
-							data={{
-								type: "FeatureCollection",
-								features: pirateSignals.map((pirate) => {
-									return {
-										type: "Feature",
-										properties: {},
-										geometry: {
-											type: "Point",
-											coordinates: [
-												pirate.longitude,
-												pirate.latitude,
-											],
-										},
-									};
-								}),
-							}}
-						>
-							{pirateSignals.map((pirate, i) => (
-								<Layer
-									key={`pirateRadius${i}`}
-									id={`pirateRadius${i}`}
-									type="circle"
-									paint={{
-										"circle-radius": {
-											stops: [
-												[0, 0],
-												[
-													20,
-													(2.5 * 1000) /
-														0.075 /
-														Math.cos(
-															(pirate.latitude *
-																Math.PI) /
-																180
-														),
-												],
-											],
-											base: 2,
-										},
-										"circle-color": "red",
-										"circle-opacity": 0.2,
-										"circle-stroke-width": 1,
-									}}
-								/>
-							))}
-						</Source>
-					</>
+					<Pirates pirateSignals={pirateSignals} />
 				)}
 
-				{currentLocation && nearbyShips && nearbyShips.length > 0 && (
-					<>
-						<Source
-							id="radius"
-							type="geojson"
-							data={{
-								type: "FeatureCollection",
-								features: [
-									{
-										type: "Feature",
-										properties: {},
-										geometry: {
-											type: "Point",
-											coordinates: [
-												currentLocation.longitude,
-												currentLocation.latitude,
-											],
-										},
-									},
-								],
-							}}
-						>
-							<Layer
-								id="point"
-								type="circle"
-								paint={{
-									"circle-radius": {
-										stops: [
-											[0, 0],
-											[
-												20,
-												(parseInt(
-													process.env
-														.REACT_APP_NEARBY_RADIUS ||
-														"5"
-												) *
-													1000) /
-													0.075 /
-													Math.cos(
-														(currentLocation.latitude *
-															Math.PI) /
-															180
-													),
-											],
-										],
-										base: 2,
-									},
-									"circle-color": "#007cbf",
-									"circle-opacity": 0.4,
-									"circle-stroke-width": 1,
-								}}
-							/>
-						</Source>
-
-						{/* <Source
-							id="sectorSource"
-							type="geojson"
-							data={{
-								type: "Feature",
-								geometry: {
-									type: "Polygon",
-									coordinates: getHeadingSector(
-										currentLocation
-									),
-								},
-								properties: {},
-							}}
-						>
-							<Layer
-								id="sectorFill"
-								type="fill"
-								source="sectorSource"
-								paint={{
-									"fill-color": "red",
-									"fill-opacity": 0.4,
-								}}
-							/>
-						</Source> */}
-					</>
-				)}
-				{currentLocation?.latitude && currentLocation?.longitude && (
-					<Marker
-						key="currentLocation"
-						latitude={currentLocation?.latitude}
-						longitude={currentLocation?.longitude}
-					>
-						<div
-							className="bg-white rounded-full flex items-center justify-center"
-							style={{
-								width: "56px",
-								height: "56px",
-								marginLeft: "-28px",
-								marginTop: "-28px",
-							}}
-						>
-							<img
-								width={24}
-								height={24}
-								style={{
-									transform: `rotate(${
-										currentLocation.heading || 0
-									}deg)`,
-								}}
-								src="../CurrentLocation.svg"
-								alt="Your Location"
-							/>
-						</div>
-					</Marker>
-				)}
+				<ShipLocation
+					showCircle={nearbyShips !== null && nearbyShips.length > 0}
+				/>
 			</ReactMapGl>
 		</div>
 	);

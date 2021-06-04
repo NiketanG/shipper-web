@@ -22,6 +22,8 @@ export const LanguagesList = [
 	},
 ];
 
+export type Theme = "light" | "dark";
+
 type AppConfigContextType = {
 	location: Location | null;
 	email: string | null;
@@ -30,6 +32,10 @@ type AppConfigContextType = {
 	muteType: WarningTypes;
 	speed: number;
 	showGuide: boolean;
+	theme: Theme;
+	radius: number;
+	setRadius: (newRadius: number) => void;
+	setTheme: (newTheme: Theme) => void;
 	toggleGuide: () => void;
 	setSpeed: (newSpeed: number) => void;
 	setMuteType: (newType: WarningTypes) => void;
@@ -47,6 +53,10 @@ export const AppConfigContext = createContext<AppConfigContextType>({
 	muteType: WarningTypes.None,
 	speed: 0.0005,
 	showGuide: true,
+	theme: "light",
+	radius: parseInt(process.env.REACT_APP_NEARBY_RADIUS || "5"),
+	setRadius: () => {},
+	setTheme: () => {},
 	toggleGuide: () => {},
 	setSpeed: () => {},
 	setMuteType: () => {},
@@ -69,6 +79,14 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
 	});
 
 	const [email, setEmail] = useState<string | null>(null);
+	const [radius, setRadius] = useState(
+		parseInt(process.env.REACT_APP_NEARBY_RADIUS || "5")
+	);
+
+	const updateRadius = (newRadius: number) => {
+		setRadius(newRadius);
+		localStorage.setItem("radius", newRadius.toString());
+	};
 
 	useEffect(() => {
 		const lang = localStorage.getItem("language");
@@ -114,6 +132,18 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
 		localStorage.setItem("muteType", newType.toString());
 	};
 
+	const [theme, setTheme] = useState<Theme>("light");
+
+	const updateTheme = (newTheme: Theme) => {
+		if (newTheme === "dark") {
+			document.documentElement.classList.add("dark");
+		} else {
+			document.documentElement.classList.remove("dark");
+		}
+		setTheme(newTheme);
+		localStorage.setItem("theme", newTheme);
+	};
+
 	useEffect(() => {
 		const muteTypeStored = localStorage.getItem("muteType");
 		if (muteTypeStored) {
@@ -145,6 +175,32 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
 		}
 	}, []);
 
+	useEffect(() => {
+		const themeStored = localStorage.getItem("theme");
+		if (themeStored) {
+			setTheme(themeStored === "light" ? "light" : "dark");
+
+			if (themeStored === "dark") {
+				document.documentElement.classList.add("dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+			}
+		}
+	}, []);
+
+	useEffect(() => {
+		const radiusStored = localStorage.getItem("radius");
+		if (radiusStored) {
+			setRadius(parseInt(radiusStored));
+		} else {
+			const defaultRadius = parseInt(
+				process.env.REACT_APP_NEARBY_RADIUS || "5"
+			);
+			setRadius(defaultRadius);
+			localStorage.setItem("radius", defaultRadius.toString());
+		}
+	}, []);
+
 	const [speed, setSpeed] = useState(0.001);
 	const updateSpeed = (newSpeed: number) => setSpeed(newSpeed);
 
@@ -154,14 +210,18 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
 	return (
 		<AppConfigContext.Provider
 			value={{
+				theme,
 				email,
 				language,
 				location,
 				mute,
-				toggleMute,
 				muteType,
 				speed,
 				showGuide,
+				radius,
+				setRadius: updateRadius,
+				setTheme: updateTheme,
+				toggleMute,
 				toggleGuide,
 				setSpeed: updateSpeed,
 				setMuteType: updateMuteType,

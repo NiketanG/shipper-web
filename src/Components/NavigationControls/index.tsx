@@ -12,7 +12,7 @@ type Props = {
 	}) => void;
 };
 const NavigationControls: React.FC<Props> = ({ setViewport }) => {
-	const { location, email, setLocation, speed } = useContext(
+	const { theme, location, email, setLocation, speed } = useContext(
 		AppConfigContext
 	);
 	const savedName = localStorage.getItem("name");
@@ -177,33 +177,13 @@ const NavigationControls: React.FC<Props> = ({ setViewport }) => {
 	};
 
 	return (
-		<div
-			style={{
-				position: "absolute",
-				bottom: 112,
-				left: 16,
-				zIndex: 10,
-				display: "flex",
-				flexDirection: "column",
-				alignItems: "center",
-				justifyContent: "center",
-			}}
-		>
-			<div
-				style={{
-					display: "flex",
-					flexDirection: "row",
-				}}
-			>
+		<div className="flex flex-col items-center justify-center z-10 absolute left-4 bottom-24 md:bottom-32">
+			<div className="flex flex-row">
 				<img
 					onClick={rotateLeft}
+					className="bg-white rounded p-2 w-7 h-7"
 					style={{
-						backgroundColor: "white",
-						color: "red",
-						width: "28px",
-						height: "28px",
-						padding: "8px",
-						borderRadius: "4px",
+						filter: theme === "dark" ? "invert(1)" : "none",
 						margin: "2px",
 					}}
 					src="/RotateLeft.png"
@@ -211,13 +191,9 @@ const NavigationControls: React.FC<Props> = ({ setViewport }) => {
 				/>
 				<img
 					onClick={goForward}
+					className="bg-white rounded p-2 w-7 h-7"
 					style={{
-						backgroundColor: "white",
-						color: "red",
-						width: "28px",
-						height: "28px",
-						padding: "8px",
-						borderRadius: "4px",
+						filter: theme === "dark" ? "invert(1)" : "none",
 						margin: "2px",
 					}}
 					src="/Up.png"
@@ -225,33 +201,20 @@ const NavigationControls: React.FC<Props> = ({ setViewport }) => {
 				/>
 				<img
 					onClick={rotateRight}
+					className="bg-white rounded p-2 w-7 h-7"
 					style={{
-						backgroundColor: "white",
-						color: "red",
-						width: "28px",
-						height: "28px",
-						padding: "8px",
-						borderRadius: "4px",
+						filter: theme === "dark" ? "invert(1)" : "none",
 						margin: "2px",
 					}}
 					src="/RotateRight.png"
 					alt="Rotate Right"
 				/>
 			</div>
-			<div
-				style={{
-					display: "flex",
-					flexDirection: "row",
-				}}
-			>
+			<div className="flex flex-row">
 				<img
+					className="bg-white rounded p-2 w-7 h-7"
 					style={{
-						backgroundColor: "white",
-						color: "red",
-						width: "28px",
-						height: "28px",
-						padding: "8px",
-						borderRadius: "4px",
+						filter: theme === "dark" ? "invert(1)" : "none",
 						margin: "2px",
 					}}
 					src="/Left.png"
@@ -260,15 +223,11 @@ const NavigationControls: React.FC<Props> = ({ setViewport }) => {
 				/>
 				<img
 					onClick={goBackward}
+					className="bg-white rounded p-2 w-7 h-7"
 					style={{
-						backgroundColor: "white",
-						color: "red",
-						width: "28px",
-						height: "28px",
-						padding: "8px",
-						transform: "rotate(180deg)",
-						borderRadius: "4px",
+						filter: theme === "dark" ? "invert(1)" : "none",
 						margin: "2px",
+						transform: "rotate(180deg)",
 					}}
 					src="/Up.png"
 					alt="Down"
@@ -276,13 +235,9 @@ const NavigationControls: React.FC<Props> = ({ setViewport }) => {
 
 				<img
 					onClick={goRight}
+					className="bg-white rounded p-2 w-7 h-7"
 					style={{
-						backgroundColor: "white",
-						color: "red",
-						width: "28px",
-						height: "28px",
-						padding: "8px",
-						borderRadius: "4px",
+						filter: theme === "dark" ? "invert(1)" : "none",
 						margin: "2px",
 					}}
 					src="/Right.png"

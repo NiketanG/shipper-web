@@ -25,11 +25,10 @@ const Warning: React.FC<Props> = ({
 
 	return (
 		<animated.div
-			className="max-w-full md:mx-0 rounded-full absolute z-10 flex flex-row items-center -mb-4 md:-mb-0"
+			className="max-w-full md:mx-0 rounded-full absolute z-30 overflow-hidden flex flex-row items-center -mb-4 md:-mb-0 text-white bottom-28 px-8 py-4"
 			style={{
 				width,
 				height,
-				overflow: "hidden",
 				minHeight: "80px",
 				maxHeight: "100px",
 				backgroundColor:
@@ -38,12 +37,8 @@ const Warning: React.FC<Props> = ({
 						: severity === "MEDIUM"
 						? "#EF6C00"
 						: "#282828",
-				bottom: 112,
-				left: 0,
 				marginLeft: "50%",
 				transform: "translateX(-50%)",
-				color: "white",
-				padding: "16px 32px",
 			}}
 		>
 			<img

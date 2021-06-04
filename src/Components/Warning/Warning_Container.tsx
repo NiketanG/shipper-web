@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { AppConfigContext } from "../../utils/AppConfigContext";
 import Warning from ".";
 import { NearbyShip, WarningTypes } from "../../types/types";
@@ -14,8 +14,11 @@ export const Warnings: React.FC<WarningsProps> = ({
 	playAudio,
 	pauseAudio,
 }) => {
-	const { location, language, mute, muteType } = useContext(AppConfigContext);
+	const { language, mute, muteType } = useContext(AppConfigContext);
 
+	useEffect(() => {
+		warningSound(WarningTypes.CollisionWarning, 2000);
+	}, [nearbyShips]);
 	const warningSound = (type: WarningTypes, time = 2000) => {
 		if (!mute && muteType !== type) {
 			playAudio();
@@ -25,12 +28,7 @@ export const Warnings: React.FC<WarningsProps> = ({
 		}
 	};
 
-	// if (nearbyShips.filter((ship) => ship.inFOV).length > 0) {
-
-	// }
-
 	if (nearbyShips.filter((ship) => ship.inFOV).length === 1) {
-		warningSound(WarningTypes.CollisionWarning, 2000);
 		return (
 			<Warning
 				severity="HIGH"
@@ -42,7 +40,6 @@ export const Warnings: React.FC<WarningsProps> = ({
 	}
 
 	if (nearbyShips.length === 1) {
-		warningSound(WarningTypes.NearbyShip, 1000);
 		return (
 			<Warning
 				severity="LOW"
@@ -54,8 +51,6 @@ export const Warnings: React.FC<WarningsProps> = ({
 	}
 
 	if (nearbyShips.filter((ship) => ship.inFOV).length >= 2) {
-		warningSound(WarningTypes.TrafficRegion, 2000);
-
 		return (
 			<Warning
 				severity="HIGH"
@@ -67,7 +62,6 @@ export const Warnings: React.FC<WarningsProps> = ({
 	}
 
 	if (nearbyShips.length > 1) {
-		warningSound(WarningTypes.MultipleShips, 2000);
 		return (
 			<Warning
 				severity="MEDIUM"
