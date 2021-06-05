@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+    shipper_web-prod:
+        container_name: shipper_web
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - 80:80
