@@ -76,7 +76,7 @@ const Settings: React.FC<any> = () => {
 						<div>
 							<button>{theme.toUpperCase()}</button>
 							<animated.div
-								className="-ml-32 -mt-8 shadow-lg dark:bg-bgDark absolute z-40 flex flex-col rounded items-start overflow-hidden"
+								className="-ml-32 -mt-8 shadow-lg bg-white dark:bg-bgDark absolute z-40 flex flex-col rounded items-start overflow-hidden"
 								style={{
 									width: widthTheme,
 									height: heightTheme,
@@ -118,7 +118,7 @@ const Settings: React.FC<any> = () => {
 							<p>{language.toUpperCase()}</p>
 							{showLanguages && (
 								<animated.div
-									className="-ml-32 -mt-8 shadow-lg dark:bg-bgDark absolute z-40 flex flex-col rounded items-start overflow-hidden"
+									className="-ml-32 -mt-8 shadow-lg bg-white dark:bg-bgDark absolute z-40 flex flex-col rounded items-start overflow-hidden"
 									style={{
 										width: widthLanguage,
 										height: heightLanguage,
