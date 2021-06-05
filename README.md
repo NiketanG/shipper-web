@@ -9,6 +9,8 @@ Developed for **ASEAN-India Hackathon** 2021 - PS7 and won **Encouragement Award
 
 [Shipper-Web](https://shipper-web.netlify.app)
 
+##### For Backend - Refer to [Shipper-Server](https://github.com/NiketanG/shipper-server)
+
 ## Local Development
 
 ### Prerequisites
@@ -16,7 +18,6 @@ Developed for **ASEAN-India Hackathon** 2021 - PS7 and won **Encouragement Award
 -   [Mapbox Account](https://account.mapbox.com/) & [Access token](https://account.mapbox.com/access-tokens/create)
 -   [Shipper-Server](https://github.com/NiketanG/shipper-server) running
 -   [Node.js](https://nodejs.org/) Installed
--   [Postgres](https://www.postgresql.org/) Installed and Configured to accept connections (Optional if you use docker)
 
 ### Environment Variables
 
