@@ -7,6 +7,7 @@ import Spinner from "../../Components/Loading";
 const Login: React.FC<any> = () => {
 	const windowLocation = useHistory();
 	const [loading, setLoading] = useState(true);
+	const [checkingApi, setCheckingApi] = useState(true);
 	const [email, setEmail] = useState("");
 	const [name, setName] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -16,12 +17,13 @@ const Login: React.FC<any> = () => {
 
 	const checkApiReachable = async () => {
 		try {
+			setCheckingApi(true);
 			const apiResponse = await axios.get(
 				`${process.env.REACT_APP_API_URL}`
 			);
 			if (apiResponse.status !== 200) {
 				console.error("API Response : ", apiResponse);
-				alert("API not reachable");
+				// alert("API not reachable");
 				setApiReachable(false);
 			} else {
 				setApiReachable(true);
@@ -29,7 +31,9 @@ const Login: React.FC<any> = () => {
 		} catch (err) {
 			console.error(err);
 			setApiReachable(false);
-			alert("API not reachable");
+			// alert("API not reachable");
+		} finally {
+			setCheckingApi(false);
 		}
 	};
 
@@ -111,13 +115,22 @@ const Login: React.FC<any> = () => {
 					<p className="text-sm text-light text-gray-500 mt-1">
 						Developed for ASEAN-INDIA Hackathon 2021
 					</p>
-					<p
-						className={`text-sm text-light ${
-							apiReachable ? "text-green-500" : "text-red-500"
-						} mt-2`}
-					>
-						{apiReachable ? "API Reachable" : "API Unreachable"}
-					</p>
+					{checkingApi ? (
+						<span className="flex items-center flex-row  mt-2">
+							<p className="text-sm text-light text-yellow-500">
+								Checking API Status
+							</p>
+							<Spinner color="rgb(245, 158, 11)" />
+						</span>
+					) : (
+						<p
+							className={`text-sm text-light ${
+								apiReachable ? "text-green-500" : "text-red-500"
+							} mt-2`}
+						>
+							{apiReachable ? "API Reachable" : "API Unreachable"}
+						</p>
+					)}
 				</div>
 				<div className="lg:w-2/6 md:w-1/2 bg-gray-100 rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0">
 					<h2 className="text-gray-900 text-lg font-medium title-font mb-5">

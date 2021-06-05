@@ -87,22 +87,23 @@ const Map: React.FC<any> = () => {
 	const windowLocation = useHistory();
 	const savedEmail = localStorage.getItem("email");
 
-	useEffect(() => {
-		axios
-			.get(`${process.env.REACT_APP_API_URL}/ships`, {
-				withCredentials: true,
-				headers: {
-					Authorization: savedEmail,
-				},
-			})
-			.then((res) => {
-				if (res.status === 200) setShips(res.data);
-			})
-			.catch((err) => {
-				alert("An error occured");
-				console.error(err);
-			});
-	}, []);
+	const fetchShips = async () => {
+		try {
+			const res = await axios.get(
+				`${process.env.REACT_APP_API_URL}/ships`,
+				{
+					withCredentials: true,
+					headers: {
+						Authorization: savedEmail,
+					},
+				}
+			);
+			if (res.status === 200) setShips(res.data);
+		} catch (err) {
+			alert("An error occured");
+			console.error(err);
+		}
+	};
 
 	useEffect(() => {
 		if (savedEmail && typeof savedEmail === "string") {
@@ -127,6 +128,7 @@ const Map: React.FC<any> = () => {
 							longitude: res.data.longitude,
 							speed: res.data.speed,
 						});
+						fetchShips();
 					}
 				})
 				.catch((err) => {
