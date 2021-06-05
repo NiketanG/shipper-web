@@ -1,63 +1,78 @@
 ## Shipper
 
-##### Web App
+#### Web
 
 Traffic Management System for Coastal Regions.
-Developed for **ASEAN-India Hackathon** 2021 - PS7.
+Developed for **ASEAN-India Hackathon** 2021 - PS7 and won **Encouragement Award**.
 
-##### Demo: [Shipper-Web](https://shipper-web.netlify.app)
+### Demo
 
-##### For Backend - Refer to [Shipper-Server](https://github.com/NiketanG/shipper-server)
+[Shipper-Web](https://shipper-web.netlify.app)
 
-### Local Development
+## Local Development
 
-##### Prerequisites
+### Prerequisites
 
 -   [Mapbox Account](https://account.mapbox.com/) & [Access token](https://account.mapbox.com/access-tokens/create)
 -   [Shipper-Server](https://github.com/NiketanG/shipper-server) running
 -   [Node.js](https://nodejs.org/) Installed
+-   [Postgres](https://www.postgresql.org/) Installed and Configured to accept connections (Optional if you use docker)
 
-##### Configure Environment Variables
+### Environment Variables
 
-Make sure you have set the following environment variables. You can also use a **.env** file. An .env.example file is provided for the format
+To run this project, you will need to add the following environment variables to your .env file
+An (env.example)[.env.example] file is provided in the repo.
 
-```
-REACT_APP_MAPBOX_ACCESS_TOKEN=Access token from Mapbox
-REACT_APP_API_URL=Url of Shipper-Server
-```
+`REACT_APP_MAPBOX_ACCESS_TOKEN` Access token from Mapbox
 
-##### Install Dependencies
+`REACT_APP_API_URL` Url of Shipper-Server
 
-```
+### Install Dependencies
+
+```bash
 yarn install
-	#OR
+or
 npm install
 ```
 
-##### Start Development Server
+### Start Development Server
 
-```
+```bash
 yarn dev
-	#OR
+or
 npm run dev
 ```
 
-This will allow you to access the app on [http://localhost:3000](http://localhost:3000)
+This will start a develoment server for the frontend on [http://localhost:3000](http://localhost:3000)
 
-#### Create Production Build
+---
+
+## Deployment
+
+### Create a production build
 
 This will create a production build that can be deployed.
 
-```
+```bash
 yarn build
-	#OR
+or
 npm run build
 ```
 
-### Getting Started
+For Deploying, you can use Docker (with Docker Compose).
 
-Just enter your Email Address & Name in the Login Page. It will automatically sign you up if your account doesn'st exist.
+```bash
+docker-compose up --build
+```
 
-You will see a map with your ships location. This location isn't your actual current location, it's just used for Demo Purposes.
+---
 
-Use the Navigation Controls on the Left Bottom Corner to navigate your ship location (Black Arrow in the middle of screen). As you move your ship, the other ships (People using the App) will be able to view it as well in the real time. Similiarly, you can view other ships as they move.
+## Getting Started
+
+Open the application in your web browser on [http://localhost:3000](http://localhost:3000)
+
+Enter your email address and name on the login page, you will be redirected to the dashboard.
+
+The map uses an initial location (not your current location) for demo purposes. Use the Controls in Bottom Left corner for navigation. Based on the ships around you, warnings and alerts will be displayed.
+
+The locations of all ships (including yours) are synchronized in real time, so as you move, all other ships around you will also see your movements.
