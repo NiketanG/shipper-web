@@ -77,3 +77,10 @@ Enter your email address and name on the login page, you will be redirected to t
 The map uses an initial location (not your current location) for demo purposes. Use the Controls in Bottom Left corner for navigation. Based on the ships around you, warnings and alerts will be displayed.
 
 The locations of all ships (including yours) are synchronized in real time, so as you move, all other ships around you will also see your movements.
+
+---
+
+## LICENSE
+[Eclipse Public License (EPL)](https://www.eclipse.org/legal/epl-2.0/)
+
+You are free to modify the code. Redistributions are not allowed without prior request from the original author. You are obligated to include the full **license** and the **copyrights**.
